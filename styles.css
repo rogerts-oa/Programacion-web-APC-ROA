@@ -6,6 +6,8 @@
     display: block;
     margin: 20px auto;
     border-radius: 20px;
+    width: 100%;
+    height: auto;
 }
 .btn-style{
     background-color: #8D6E63;
@@ -28,7 +30,7 @@
 background-color: gold;
 color: white;
 text-align: center;
-padding: 20%px;
+padding: 20px;
 }
 .body-style {
     margin: 0;
