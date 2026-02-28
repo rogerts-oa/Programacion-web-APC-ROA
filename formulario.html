@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario - Hotel Quinta Dalam</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="body-style">
+
+<h1>Gestión de Habitaciones</h1>
+<main class="main-style">
+    <p>Utilice el siguiente formulario para gestionar las habitaciones del Hotel Quinta Dalam. Puedes agregar nuevas habitaciones, modificar las existentes o eliminar aquellas que ya no estén disponibles. Asegúrate de ingresar la información correcta para mantener nuestro catálogo actualizado y ofrecer la mejor experiencia a nuestros huéspedes.</p>
+<form>
+    <label>Nombre de la habitación:</label><br>
+    <input list="habitaciones" name="nombre">
+    <datalist id="habitaciones">
+        <option value="Tzintzuntzan">
+        <option value="Paracho">
+        <option value="Yunuen">
+        <option value="Pátzcuaro">
+        <option value="Janitzio">
+        <option value="Morelia">
+        <option value="Uruapan">
+    </datalist>
+    <br><br>
+
+    <label>Precio por noche:</label><br>
+    <input list="precios" name="precio">
+    <datalist id="precios">
+        <option value="800">
+        <option value="1000">
+        <option value="1200">
+        <option value="1500">
+    </datalist>
+    <br><br>
+
+    <label>Tipo de acción:</label><br>
+    <input list="acciones" name="accion">
+    <datalist id="acciones">
+        <option value="Alta">
+        <option value="Modificar">
+        <option value="Eliminar">
+    </datalist>
+    <br><br>
+    <div >
+    <button class="btn-style" type="submit">Enviar</button>
+    <button class="btn-style" type="button" onclick="window.location.href='index.html'">
+    Regresar al Inicio
+    </button>
+    </div>
+</form>
+
+</body>
+</html>
