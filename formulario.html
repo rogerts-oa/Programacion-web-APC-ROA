@@ -3,54 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario - Hotel Quinta Dalam</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rogerts-oa/Programacion-web-APC-ROA_CSS@main/formulario.css">
-</head>
-
+    <title>Gestión - Hotel Quinta Dalam</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rogerts-oa/Programacion-web-APC-ROA_CSS@980fd01717453b457a3e0d3419b712f46297a8a0/formulario.css">
 <body class="body-style">
-
-<h1>Gestión de Habitaciones</h1>
+<header class="header-style">
+    <h1>Gestión de Habitaciones</h1>
+</header>
 <main class="main-style">
-    <p>Utilice el siguiente formulario para gestionar las habitaciones del Hotel Quinta Dalam. Puedes agregar nuevas habitaciones, modificar las existentes o eliminar aquellas que ya no estén disponibles. Asegúrate de ingresar la información correcta para mantener nuestro catálogo actualizado y ofrecer la mejor experiencia a nuestros huéspedes.</p>
-<form>
-    <label>Nombre de la habitación:</label><br>
-    <input list="habitaciones" name="nombre">
-    <datalist id="habitaciones">
-        <option value="Tzintzuntzan">
-        <option value="Paracho">
-        <option value="Yunuen">
-        <option value="Pátzcuaro">
-        <option value="Janitzio">
-        <option value="Morelia">
-        <option value="Uruapan">
-    </datalist>
+    <p>
+        Utilice los siguientes formularios para gestionar las habitaciones del Hotel Quinta Dalam.
+        Puede agregar nuevas habitaciones, modificar las existentes o eliminar aquellas que ya no
+        estén disponibles.
+    </p>
+    <section>
+        <h2>Alta de Habitación</h2>
+        <form>
+            <label for="nombreAlta">Nombre de la habitación:</label><br>
+            <input type="text" id="nombreAlta" name="nombreAlta" required><br><br>
+            <label for="precioAlta">Precio por noche:</label><br>
+            <input type="number" id="precioAlta" name="precioAlta" required><br><br>
+            <button class="btn-style" type="submit">Agregar Habitación</button>
+        </form>
+    </section>
+    <hr>
+    <section>
+        <h2>Modificar Habitación</h2>
+        <form>
+            <label for="nombreModificar">Seleccionar habitación:</label><br>
+            <input list="habitaciones" id="nombreModificar" name="nombreModificar" required>
+            <datalist id="habitaciones">
+                <option value="Tzintzuntzan">
+                <option value="Paracho">
+                <option value="Yunuen">
+                <option value="Pátzcuaro">
+                <option value="Janitzio">
+                <option value="Morelia">
+                <option value="Uruapan">
+            </datalist>
+            <br><br>
+            <label for="precioModificar">Nuevo precio:</label><br>
+            <input type="number" id="precioModificar" name="precioModificar" required><br><br>
+            <button class="btn-style" type="submit">Modificar Habitación</button>
+        </form>
+    </section>
+    <hr>
+    <section>
+        <h2>Eliminar Habitación</h2>
+        <form>
+            <label for="nombreEliminar">Seleccionar habitación:</label><br>
+            <input list="habitaciones" id="nombreEliminar" name="nombreEliminar" required><br><br>
+            <button class="btn-style" type="submit">Eliminar Habitación</button>
+        </form>
+    </section>
     <br><br>
-
-    <label>Precio por noche:</label><br>
-    <input list="precios" name="precio">
-    <datalist id="precios">
-        <option value="800">
-        <option value="1000">
-        <option value="1200">
-        <option value="1500">
-    </datalist>
-    <br><br>
-
-    <label>Tipo de acción:</label><br>
-    <input list="acciones" name="accion">
-    <datalist id="acciones">
-        <option value="Alta">
-        <option value="Modificar">
-        <option value="Eliminar">
-    </datalist>
-    <br><br>
-    <div >
-    <button class="btn-style" type="submit">Enviar</button>
-    <button class="btn-style" type="button" onclick="window.location.href='index.html'">
-    Regresar al Inicio
-    </button>
+    <div>
+        <button class="btn-style" type="button" onclick="window.location.href='index.html'">
+            Regresar al Inicio
+        </button>
     </div>
-</form>
-
+</main>
+<footer class="footer-style">
+            <h2>Contacto</h2>
+            <ul>
+                <li><a target="_blank" href="https://www.facebook.com/profile.php?id=61584681841684">Facebook</a></li>
+                <li><a target="_blank" href="https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</a></li>
+                <li><a target="_blank" href="https://www.tiktok.com/@quintadalam?lang=es">TikTok</a></li>
+            </ul>
+            <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
+            <p>
+            <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
+                <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
+            </a>
+            </p>
+            <p>
+            <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
+                <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
+            </a>
+            </p>  
+</footer>
 </body>
 </html>

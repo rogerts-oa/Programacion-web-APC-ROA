@@ -26,11 +26,15 @@
     font-size: 16px;
     cursor: pointer;
 }
-.header-style{
-background-color: gold;
-color: white;
-text-align: center;
-padding: 20px;
+.header-style {
+    background-color: #5c3d2e;      
+    color: #f8f1e5;                
+    padding: 20px 40px;             
+    display: flex;                  
+    justify-content: space-between; 
+    align-items: center;       
+    border-bottom: 4px solid #8D6E63;
+    margin-bottom: 30px;
 }
 .body-style {
     margin: 0;
@@ -39,6 +43,9 @@ padding: 20px;
     background: linear-gradient(to bottom, #f8f1e5 0%, #e8d8c3 100%);
     background-attachment: fixed;
     color: #4b2e2e;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 .main-style {
     width: 85%;
