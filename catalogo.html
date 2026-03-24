@@ -3,59 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo</title>
+    <title>Catálogo - Hotel Quinta Dalam</title>
+    <meta name="description" content="Explora nuestro catálogo de habitaciones temáticas inspiradas en los Pueblos Mágicos de México.">
     <link rel="stylesheet" href="styles.css">
-    </head>
-<body class="body-style">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .rooms-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 0;
+            list-style: none;
+            margin: 20px 0;
+        }
+        .room-item {
+            background-color: #f8f1e5;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #d7ccc8;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .room-item:hover {
+            transform: translateY(-3px);
+            background-color: #efebe9;
+        }
+    </style>
+</head>
+<body class="body-style" id="app">
     <header class="header-style">
-    <h1>Habitaciones</h1>
+        <h1>{{ headerTitle }}</h1>
     </header>
     <nav>
-        <div>
-            <button class="btn-style" onclick="window.location.href='index.html'">
-                 Inicio
-            </button>
+        <div class="nav-wrapper">
+             <button class="btn-style" @click="goTo('index.html')">
+                  Inicio
+             </button>
         </div>
     </nav>
     <main class="main-style">
-         <p>En el Hotel Quinta Dalam, cada habitación es un homenaje a la riqueza cultural de los Pueblos Mágicos de México. Nuestro catálogo de habitaciones temáticas te invita a sumergirte en la esencia de cada destino, ofreciéndote una experiencia única que combina confort moderno con la magia ancestral de nuestras tradiciones.</p>
-         <p>Desde la vibrante Tzintzuntzan hasta la encantadora Paracho, cada habitación está diseñada para transportarte a un rincón diferente de México, permitiéndote vivir la autenticidad y el encanto de nuestros Pueblos Mágicos sin salir de tu refugio de paz y confort.</p>
-         <p>Explora nuestro catálogo y descubre tu próxima aventura cultural en el Hotel Quinta Dalam, donde cada estancia es una oportunidad para enamorarte aún más de la magia que solo México puede ofrecer.</p>
-    <ul>
-            <li>Tzintzuntzan</li>
-            <li>Paracho</li>
-            <li>Yunuén</li>
-            <li>Pátzcuaro</li>
-            <li>Coeneo</li>
-            <li>Janitzio</li>
-            <li>Suite Quencio</li>
-            <li>Morelia</li>
-            <li>Tacámbaro</li>
-            <li>Uruapan</li>
-            <li>Tlalpujagua</li>
-            <li>Cuitzeo</li>
-            <li>Cuanajo</li>
-        </ul>
-        <img class="img-style" src="imágenes_hotel/Cuarto.jpg" width="200" alt="Habitación Paracho del Hotel Quinta Dalam">
+         <p v-for="p in introParagraphs" :key="p">{{ p }}</p>
+         
+         <ul class="rooms-list">
+            <li v-for="room in rooms" :key="room" class="room-item">{{ room }}</li>
+         </ul>
+
+         <img class="img-style" src="imágenes_hotel/Cuarto.jpg" alt="Habitación Paracho del Hotel Quinta Dalam">
     </main>
     <footer class="footer-style">
-            <h2>Contacto</h2>
+            <h2>{{ footerTitle }}</h2>
             <ul>
-                <li><a target="_blank" href="https://www.facebook.com/profile.php?id=61584681841684">Facebook</a></li>
-                <li><a target="_blank" href="https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</a></li>
-                <li><a target="_blank" href="https://www.tiktok.com/@quintadalam?lang=es">TikTok</a></li>
+                <li v-for="social in socialLinks" :key="social.name">
+                    <a target="_blank" :href="social.url">{{ social.name }}</a>
+                </li>
             </ul>
             <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
             <p>
-            <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
-                <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
-            </a>
+                <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
+                    <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
+                </a>
             </p>
             <p>
-            <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
-                <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
-            </a>
+                <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
+                    <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
+                </a>
             </p>  
     </footer>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const headerTitle = ref('Habitaciones');
+                const footerTitle = ref('Contacto');
+                
+                const introParagraphs = ref([
+                    "En el Hotel Quinta Dalam, cada habitación es un homenaje a la riqueza cultural de los Pueblos Mágicos de México. Nuestro catálogo de habitaciones temáticas te invita a sumergirte en la esencia de cada destino, ofreciéndote una experiencia única que combina confort moderno con la magia ancestral de nuestras tradiciones.",
+                    "Desde la vibrante Tzintzuntzan hasta la encantadora Paracho, cada habitación está diseñada para transportarte a un rincón diferente de México, permitiéndote vivir la autenticidad y el encanto de nuestros Pueblos Mágicos sin salir de tu refugio de paz and confort.",
+                    "Explora nuestro catálogo y descubre tu próxima aventura cultural en el Hotel Quinta Dalam, donde cada estancia es una oportunidad para enamorarte aún más de la magia que solo México puede ofrecer."
+                ]);
+
+                const rooms = ref([
+                    'Tzintzuntzan', 'Paracho', 'Yunuén', 'Pátzcuaro', 'Coeneo', 
+                    'Janitzio', 'Suite Quencio', 'Morelia', 'Tacámbaro', 
+                    'Uruapan', 'Tlalpujagua', 'Cuitzeo', 'Cuanajo'
+                ]);
+
+                const socialLinks = ref([
+                    { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61584681841684' },
+                    { name: 'Instagram', url: 'https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' },
+                    { name: 'TikTok', url: 'https://www.tiktok.com/@quintadalam?lang=es' }
+                ]);
+
+                const goTo = (url) => { window.location.href = url; };
+
+                return {
+                    headerTitle, footerTitle, introParagraphs, rooms, socialLinks, goTo
+                };
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>

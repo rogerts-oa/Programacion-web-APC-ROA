@@ -4,67 +4,113 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>HOTEL QUINTA DALAM</title>
+        <meta name="description" content="Descubre el Hotel Quinta Dalam, un refugio colonial en el corazón de los Pueblos Mágicos de México. Vive la tradición y el confort.">
         <link rel="stylesheet" href="styles.css">
+        <!-- Vue 3 CDN -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     </head>
 
-    <body class="body-style">
+    <body class="body-style" id="app">
         <header class="header-style">
-        <h1>HOTEL QUINTA DALAM</h1>
+            <h1>{{ title }}</h1>
         </header>
         
         <nav>
             <div class="nav-wrapper">
-                <button class="btn-style" type="button" onclick="window.location.href='mision.html'">
-                    Misión
-                </button>
-
-                <button class="btn-style" type="button" onclick="window.location.href='vision.html'">
-                    Visión
-                </button>
-
-                <button class="btn-style" type="button" onclick="window.location.href='catalogo.html'">
-                    Catálogo
-                </button>
-
-                <button class="btn-style" type="button" onclick="window.location.href='formulario.html'">
-                    Formulario
+                <button v-for="item in menuItems" 
+                        :key="item.text"
+                        class="btn-style" 
+                        type="button" 
+                        @click="goTo(item.url)">
+                    {{ item.text }}
                 </button>
             </div>
         </nav>
 
         <main class="main-style">
-            <h2>Bienvenido</h2>
+            <h2>{{ welcomeTitle }}</h2>
 
-            <p>Descubre un refugio donde el tiempo se detiene y la tradición cobra vida.En el Hotel Quinta Dalam, no solo te ofrecemos una habitación, te invitamos a sumergirte en la riqueza cultural de los Pueblos Mágicos de México. Ubicados en el corazón de la historia, nuestras instalaciones son un tributo a la arquitectura colonial, los colores vibrantes y la calidez que define a nuestra tierra
-            Ya sea que busques una escapada romántica, un viaje de exploración o un momento de paz, aquí encontrarás el equilibrio perfecto entre el confort moderno y la mística ancestral.Déjate envolver por la esencia de nuestras tradiciones y permite que cada rincón de nuestra casa te cuente una historia diferente.
-            </p>
-            <div>
-                <img class="img-style" src="imágenes_hotel/Fachada.jpg" alt="Fachada del hotel">
-                <img class="img-style" src="imágenes_hotel/Lobby.jpg" alt="Lobby del hotel">
-                <img class="img-style" src="imágenes_hotel/Vista_amanecer.jpg" alt="Vista del amanecer">
+            <p>{{ welcomeText }}</p>
+            
+            <div class="gallery-container">
+                <div v-for="(img, index) in images" 
+                     :key="index"
+                     class="gallery-item"
+                     @mouseover="activeImage = index"
+                     @mouseleave="activeImage = null"
+                     :class="{ 'active': activeImage === index }">
+                    <img class="img-style" :src="img.src" :alt="img.alt">
+                    <p v-if="activeImage === index" class="img-caption">{{ img.alt }}</p>
+                </div>
             </div>
         </main>
 
         <footer class="footer-style">
             <h2>Contacto</h2>
             <ul>
-                <li><a target="_blank" href="https://www.facebook.com/profile.php?id=61584681841684">Facebook</a></li>
-                <li><a target="_blank" href="https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</a></li>
-                <li><a target="_blank" href="https://www.tiktok.com/@quintadalam?lang=es">TikTok</a></li>
+                <li v-for="social in socialLinks" :key="social.name">
+                    <a target="_blank" :href="social.url">{{ social.name }}</a>
+                </li>
             </ul>
-            <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
+            <p>© 2024 Hotel {{ title }}. Todos los derechos reservados.</p>
             <p>
-            <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
-                <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
-            </a>
+                <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
+                    <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
+                </a>
             </p>
             <p>
-            <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
-                <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
-            </a>
-             </p>
-
-        
+                <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
+                    <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
+                </a>
+            </p>
         </footer>
+
+        <script>
+            const { createApp, ref } = Vue;
+
+            createApp({
+                setup() {
+                    const title = ref('QUINTA DALAM');
+                    const welcomeTitle = ref('Bienvenido');
+                    const welcomeText = ref('Descubre un refugio donde el tiempo se detiene y la tradición cobra vida. En el Hotel Quinta Dalam, no solo te ofrecemos una habitación, te invitamos a sumergirte en la riqueza cultural de los Pueblos Mágicos de México. Ubicados en el corazón de la historia, nuestras instalaciones son un tributo a la arquitectura colonial, los colores vibrantes y la calidez que define a nuestra tierra. Ya sea que busques una escapada romántica, un viaje de exploración o un momento de paz, aquí encontrarás el equilibrio perfecto entre el confort moderno y la mística ancestral. Déjate envolver por la esencia de nuestras tradiciones y permite que cada rincón de nuestra casa te cuente una historia diferente.');
+                    
+                    const menuItems = ref([
+                        { text: 'Misión', url: 'mision.html' },
+                        { text: 'Visión', url: 'vision.html' },
+                        { text: 'Catálogo', url: 'catalogo.html' },
+                        { text: 'Formulario', url: 'formulario.html' }
+                    ]);
+
+                    const images = ref([
+                        { src: 'imágenes_hotel/Fachada.jpg', alt: 'Fachada del hotel' },
+                        { src: 'imágenes_hotel/Lobby.jpg', alt: 'Lobby del hotel' },
+                        { src: 'imágenes_hotel/Vista_amanecer.jpg', alt: 'Vista del amanecer' }
+                    ]);
+
+                    const socialLinks = ref([
+                        { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61584681841684' },
+                        { name: 'Instagram', url: 'https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' },
+                        { name: 'TikTok', url: 'https://www.tiktok.com/@quintadalam?lang=es' }
+                    ]);
+
+                    const activeImage = ref(null);
+
+                    const goTo = (url) => {
+                        window.location.href = url;
+                    };
+
+                    return {
+                        title,
+                        welcomeTitle,
+                        welcomeText,
+                        menuItems,
+                        images,
+                        socialLinks,
+                        activeImage,
+                        goTo
+                    };
+                }
+            }).mount('#app');
+        </script>
     </body>
 </html>

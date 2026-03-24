@@ -4,8 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión - Hotel Quinta Dalam</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rogerts-oa/Programacion-web-APC-ROA_CSS@980fd01717453b457a3e0d3419b712f46297a8a0/formulario.css">
-<body class="body-style">
+    <meta name="description" content="Formulario de gestión administrativa para el Hotel Quinta Dalam: alta, modificación y eliminación de habitaciones.">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .error-message {
+            color: #d32f2f;
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: block;
+        }
+        .valid-message {
+            color: #388e3c;
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: block;
+        }
+        input.invalid {
+            border: 1px solid #d32f2f;
+        }
+        input.valid {
+            border: 1px solid #388e3c;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body class="body-style" id="app">
 <header class="header-style">
     <h1>Gestión de Habitaciones</h1>
 </header>
@@ -15,71 +48,171 @@
         Puede agregar nuevas habitaciones, modificar las existentes o eliminar aquellas que ya no
         estén disponibles.
     </p>
-    <section>
+
+    <!-- Formulario Alta -->
+    <section class="form-section">
         <h2>Alta de Habitación</h2>
-        <form>
-            <label for="nombreAlta">Nombre de la habitación:</label><br>
-            <input type="text" id="nombreAlta" name="nombreAlta" required><br><br>
-            <label for="precioAlta">Precio por noche:</label><br>
-            <input type="number" id="precioAlta" name="precioAlta" required><br><br>
-            <button class="btn-style" type="submit">Agregar Habitación</button>
+        <form @submit.prevent="submitAlta">
+            <div class="input-group">
+                <label for="nombreAlta">Nombre de la habitación:</label><br>
+                <input type="text" id="nombreAlta" v-model="formAlta.nombre" :class="{ 'invalid': errorsAlta.nombre }" @blur="validateAlta">
+                <span v-if="errorsAlta.nombre" class="error-message">{{ errorsAlta.nombre }}</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="precioAlta">Precio por noche:</label><br>
+                <input type="number" id="precioAlta" v-model.number="formAlta.precio" :class="{ 'invalid': errorsAlta.precio }" @blur="validateAlta">
+                <span v-if="errorsAlta.precio" class="error-message">{{ errorsAlta.precio }}</span>
+            </div>
+
+            <button class="btn-style" type="submit" :disabled="hasErrorsAlta">Agregar Habitación</button>
+            <span v-if="successAlta" class="valid-message">¡Habitación agregada con éxito!</span>
         </form>
     </section>
+
     <hr>
-    <section>
+
+    <!-- Formulario Modificar -->
+    <section class="form-section">
         <h2>Modificar Habitación</h2>
-        <form>
-            <label for="nombreModificar">Seleccionar habitación:</label><br>
-            <input list="habitaciones" id="nombreModificar" name="nombreModificar" required>
-            <datalist id="habitaciones">
-                <option value="Tzintzuntzan">
-                <option value="Paracho">
-                <option value="Yunuen">
-                <option value="Pátzcuaro">
-                <option value="Janitzio">
-                <option value="Morelia">
-                <option value="Uruapan">
-            </datalist>
-            <br><br>
-            <label for="precioModificar">Nuevo precio:</label><br>
-            <input type="number" id="precioModificar" name="precioModificar" required><br><br>
-            <button class="btn-style" type="submit">Modificar Habitación</button>
+        <form @submit.prevent="submitModificar">
+            <div class="input-group">
+                <label for="nombreModificar">Seleccionar habitación:</label><br>
+                <input list="habitaciones" id="nombreModificar" v-model="formModificar.nombre" :class="{ 'invalid': errorsModificar.nombre }" @blur="validateModificar">
+                <datalist id="habitaciones">
+                    <option v-for="room in rooms" :key="room" :value="room">
+                </datalist>
+                <span v-if="errorsModificar.nombre" class="error-message">{{ errorsModificar.nombre }}</span>
+            </div>
+
+            <div class="input-group">
+                <label for="precioModificar">Nuevo precio:</label><br>
+                <input type="number" id="precioModificar" v-model.number="formModificar.precio" :class="{ 'invalid': errorsModificar.precio }" @blur="validateModificar">
+                <span v-if="errorsModificar.precio" class="error-message">{{ errorsModificar.precio }}</span>
+            </div>
+
+            <button class="btn-style" type="submit" :disabled="hasErrorsModificar">Modificar Habitación</button>
+            <span v-if="successModificar" class="valid-message">¡Habitación modificada con éxito!</span>
         </form>
     </section>
+
     <hr>
-    <section>
+
+    <!-- Formulario Eliminar -->
+    <section class="form-section">
         <h2>Eliminar Habitación</h2>
-        <form>
-            <label for="nombreEliminar">Seleccionar habitación:</label><br>
-            <input list="habitaciones" id="nombreEliminar" name="nombreEliminar" required><br><br>
-            <button class="btn-style" type="submit">Eliminar Habitación</button>
+        <form @submit.prevent="submitEliminar">
+            <div class="input-group">
+                <label for="nombreEliminar">Seleccionar habitación:</label><br>
+                <input list="habitaciones" id="nombreEliminar" v-model="formEliminar.nombre" :class="{ 'invalid': errorsEliminar.nombre }" @blur="validateEliminar">
+                <span v-if="errorsEliminar.nombre" class="error-message">{{ errorsEliminar.nombre }}</span>
+            </div>
+            <button class="btn-style" type="submit" :disabled="hasErrorsEliminar">Eliminar Habitación</button>
+            <span v-if="successEliminar" class="valid-message">¡Habitación eliminada con éxito!</span>
         </form>
     </section>
+
     <br><br>
-    <div>
-        <button class="btn-style" type="button" onclick="window.location.href='index.html'">
+    <div class="nav-wrapper">
+        <button class="btn-style" type="button" @click="goTo('index.html')">
             Regresar al Inicio
         </button>
     </div>
 </main>
+
 <footer class="footer-style">
-            <h2>Contacto</h2>
-            <ul>
-                <li><a target="_blank" href="https://www.facebook.com/profile.php?id=61584681841684">Facebook</a></li>
-                <li><a target="_blank" href="https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</a></li>
-                <li><a target="_blank" href="https://www.tiktok.com/@quintadalam?lang=es">TikTok</a></li>
-            </ul>
-            <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
-            <p>
-            <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
-                <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
-            </a>
-            </p>
-            <p>
-            <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
-                <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
-            </a>
-            </p>  
+    <h2>Contacto</h2>
+    <ul>
+        <li v-for="social in socialLinks" :key="social.name">
+            <a target="_blank" :href="social.url">{{ social.name }}</a>
+        </li>
+    </ul>
+    <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
 </footer>
+
+<script>
+    const { createApp, ref, reactive, computed } = Vue;
+
+    createApp({
+        setup() {
+            const rooms = ref(['Tzintzuntzan', 'Paracho', 'Yunuén', 'Pátzcuaro', 'Janitzio', 'Morelia', 'Uruapan']);
+            
+            const socialLinks = ref([
+                { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61584681841684' },
+                { name: 'Instagram', url: 'https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' },
+                { name: 'TikTok', url: 'https://www.tiktok.com/@quintadalam?lang=es' }
+            ]);
+
+            // Form Alta
+            const formAlta = reactive({ nombre: '', precio: null });
+            const errorsAlta = reactive({ nombre: null, precio: null });
+            const successAlta = ref(false);
+
+            const validateAlta = () => {
+                errorsAlta.nombre = !formAlta.nombre ? 'El nombre es obligatorio' : null;
+                errorsAlta.precio = !formAlta.precio || formAlta.precio <= 0 ? 'El precio debe ser mayor a 0' : null;
+            };
+
+            const hasErrorsAlta = computed(() => !formAlta.nombre || !formAlta.precio || formAlta.precio <= 0);
+
+            const submitAlta = () => {
+                validateAlta();
+                if (!hasErrorsAlta.value) {
+                    successAlta.value = true;
+                    setTimeout(() => successAlta.value = false, 3000);
+                }
+            };
+
+            // Form Modificar
+            const formModificar = reactive({ nombre: '', precio: null });
+            const errorsModificar = reactive({ nombre: null, precio: null });
+            const successModificar = ref(false);
+
+            const validateModificar = () => {
+                errorsModificar.nombre = !formModificar.nombre ? 'Debe seleccionar una habitación' : null;
+                errorsModificar.precio = !formModificar.precio || formModificar.precio <= 0 ? 'El precio debe ser mayor a 0' : null;
+            };
+
+            const hasErrorsModificar = computed(() => !formModificar.nombre || !formModificar.precio || formModificar.precio <= 0);
+
+            const submitModificar = () => {
+                validateModificar();
+                if (!hasErrorsModificar.value) {
+                    successModificar.value = true;
+                    setTimeout(() => successModificar.value = false, 3000);
+                }
+            };
+
+            // Form Eliminar
+            const formEliminar = reactive({ nombre: '' });
+            const errorsEliminar = reactive({ nombre: null });
+            const successEliminar = ref(false);
+
+            const validateEliminar = () => {
+                errorsEliminar.nombre = !formEliminar.nombre ? 'Debe seleccionar una habitación' : null;
+            };
+
+            const hasErrorsEliminar = computed(() => !formEliminar.nombre);
+
+            const submitEliminar = () => {
+                validateEliminar();
+                if (!hasErrorsEliminar.value) {
+                    successEliminar.value = true;
+                    setTimeout(() => successEliminar.value = false, 3000);
+                }
+            };
+
+            const goTo = (url) => window.location.href = url;
+
+            return {
+                rooms, socialLinks,
+                formAlta, errorsAlta, successAlta, validateAlta, hasErrorsAlta, submitAlta,
+                formModificar, errorsModificar, successModificar, validateModificar, hasErrorsModificar, submitModificar,
+                formEliminar, errorsEliminar, successEliminar, validateEliminar, hasErrorsEliminar, submitEliminar,
+                goTo
+            };
+        }
+    }).mount('#app');
+</script>
 </body>
 </html>
