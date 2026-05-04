@@ -44,8 +44,17 @@
     <main class="main-style">
          <p v-for="p in introParagraphs" :key="p">{{ p }}</p>
          
-         <ul class="rooms-list">
-            <li v-for="room in rooms" :key="room" class="room-item">{{ room }}</li>
+         <div v-if="loading">Cargando catálogo...</div>
+         <div v-else-if="error">{{ error }}</div>
+         <ul v-else class="rooms-list">
+            <li v-for="product in products" 
+                :key="product.id" 
+                class="room-item" 
+                @click="selectItem(product)">
+                <strong>{{ product.nombre }}</strong><br>
+                <small>{{ product.categoria }}</small><br>
+                ${{ product.precio }}
+            </li>
          </ul>
 
          <img class="img-style" src="imágenes_hotel/Cuarto.jpg" alt="Habitación Paracho del Hotel Quinta Dalam">
@@ -70,24 +79,23 @@
             </p>  
     </footer>
 
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
     <script>
-        const { createApp, ref } = Vue;
+        const { createApp, ref, onMounted } = Vue;
 
         createApp({
             setup() {
-                const headerTitle = ref('Habitaciones');
+                const headerTitle = ref('Habitaciones y Servicios');
                 const footerTitle = ref('Contacto');
+                const products = ref([]);
+                const loading = ref(true);
+                const error = ref(null);
                 
                 const introParagraphs = ref([
                     "En el Hotel Quinta Dalam, cada habitación es un homenaje a la riqueza cultural de los Pueblos Mágicos de México. Nuestro catálogo de habitaciones temáticas te invita a sumergirte en la esencia de cada destino, ofreciéndote una experiencia única que combina confort moderno con la magia ancestral de nuestras tradiciones.",
-                    "Desde la vibrante Tzintzuntzan hasta la encantadora Paracho, cada habitación está diseñada para transportarte a un rincón diferente de México, permitiéndote vivir la autenticidad y el encanto de nuestros Pueblos Mágicos sin salir de tu refugio de paz and confort.",
-                    "Explora nuestro catálogo y descubre tu próxima aventura cultural en el Hotel Quinta Dalam, donde cada estancia es una oportunidad para enamorarte aún más de la magia que solo México puede ofrecer."
-                ]);
-
-                const rooms = ref([
-                    'Tzintzuntzan', 'Paracho', 'Yunuén', 'Pátzcuaro', 'Coeneo', 
-                    'Janitzio', 'Suite Quencio', 'Morelia', 'Tacámbaro', 
-                    'Uruapan', 'Tlalpujagua', 'Cuitzeo', 'Cuanajo'
+                    "Explore nuestra variedad de servicios diseñados para hacer su estancia inolvidable."
                 ]);
 
                 const socialLinks = ref([
@@ -96,10 +104,30 @@
                     { name: 'TikTok', url: 'https://www.tiktok.com/@quintadalam?lang=es' }
                 ]);
 
+                const fetchProducts = async () => {
+                    try {
+                        const response = await axios.get('http://localhost:3000/api/products');
+                        products.value = response.data;
+                    } catch (err) {
+                        console.error("Error al cargar productos:", err);
+                        error.value = "No se pudieron cargar los datos del catálogo.";
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                onMounted(() => {
+                    fetchProducts();
+                });
+
                 const goTo = (url) => { window.location.href = url; };
 
+                const selectItem = (product) => {
+                    alert(`Has seleccionado: ${product.nombre} - Precio: $${product.precio}`);
+                };
+
                 return {
-                    headerTitle, footerTitle, introParagraphs, rooms, socialLinks, goTo
+                    headerTitle, footerTitle, introParagraphs, products, socialLinks, loading, error, goTo, selectItem
                 };
             }
         }).mount('#app');

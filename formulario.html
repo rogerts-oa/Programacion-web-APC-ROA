@@ -98,19 +98,35 @@
 
     <hr>
 
-    <!-- Formulario Eliminar -->
+    <!-- Registro de Usuario (Paso 3) -->
     <section class="form-section">
-        <h2>Eliminar Habitación</h2>
-        <form @submit.prevent="submitEliminar">
+        <h2>Registro de Usuario</h2>
+        <form @submit.prevent="submitRegistro">
             <div class="input-group">
-                <label for="nombreEliminar">Seleccionar habitación:</label><br>
-                <input list="habitaciones" id="nombreEliminar" v-model="formEliminar.nombre" :class="{ 'invalid': errorsEliminar.nombre }" @blur="validateEliminar">
-                <span v-if="errorsEliminar.nombre" class="error-message">{{ errorsEliminar.nombre }}</span>
+                <label for="username">Nombre de Usuario:</label><br>
+                <input type="text" id="username" v-model="formUser.username" 
+                       :class="{ 'invalid': errorsUser.username, 'valid': usernameAvailable }" 
+                       @input="checkUsername">
+                <span v-if="errorsUser.username" class="error-message">{{ errorsUser.username }}</span>
+                <span v-if="usernameAvailable" class="valid-message">¡Nombre de usuario disponible!</span>
             </div>
-            <button class="btn-style" type="submit" :disabled="hasErrorsEliminar">Eliminar Habitación</button>
-            <span v-if="successEliminar" class="valid-message">¡Habitación eliminada con éxito!</span>
+
+            <div class="input-group">
+                <label for="email">Correo Electrónico:</label><br>
+                <input type="email" id="email" v-model="formUser.email">
+            </div>
+
+            <div class="input-group">
+                <label for="password">Contraseña:</label><br>
+                <input type="password" id="password" v-model="formUser.password">
+            </div>
+
+            <button class="btn-style" type="submit" :disabled="!usernameAvailable || !formUser.password">Registrar Usuario</button>
+            <span v-if="successUser" class="valid-message">¡Usuario registrado con éxito!</span>
         </form>
     </section>
+
+    <hr>
 
     <br><br>
     <div class="nav-wrapper">
@@ -130,89 +146,135 @@
     <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
 </footer>
 
-<script>
-    const { createApp, ref, reactive, computed } = Vue;
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    createApp({
-        setup() {
-            const rooms = ref(['Tzintzuntzan', 'Paracho', 'Yunuén', 'Pátzcuaro', 'Janitzio', 'Morelia', 'Uruapan']);
-            
-            const socialLinks = ref([
-                { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61584681841684' },
-                { name: 'Instagram', url: 'https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' },
-                { name: 'TikTok', url: 'https://www.tiktok.com/@quintadalam?lang=es' }
-            ]);
+    <script>
+        const { createApp, ref, reactive, computed } = Vue;
 
-            // Form Alta
-            const formAlta = reactive({ nombre: '', precio: null });
-            const errorsAlta = reactive({ nombre: null, precio: null });
-            const successAlta = ref(false);
+        createApp({
+            setup() {
+                const rooms = ref(['Tzintzuntzan', 'Paracho', 'Yunuén', 'Pátzcuaro', 'Janitzio', 'Morelia', 'Uruapan']);
+                
+                const socialLinks = ref([
+                    { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61584681841684' },
+                    { name: 'Instagram', url: 'https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' },
+                    { name: 'TikTok', url: 'https://www.tiktok.com/@quintadalam?lang=es' }
+                ]);
 
-            const validateAlta = () => {
-                errorsAlta.nombre = !formAlta.nombre ? 'El nombre es obligatorio' : null;
-                errorsAlta.precio = !formAlta.precio || formAlta.precio <= 0 ? 'El precio debe ser mayor a 0' : null;
-            };
+                // Form User (Paso 3)
+                const formUser = reactive({ username: '', email: '', password: '' });
+                const errorsUser = reactive({ username: null });
+                const usernameAvailable = ref(false);
+                const successUser = ref(false);
 
-            const hasErrorsAlta = computed(() => !formAlta.nombre || !formAlta.precio || formAlta.precio <= 0);
+                const checkUsername = async () => {
+                    if (formUser.username.length < 3) {
+                        errorsUser.username = "Mínimo 3 caracteres";
+                        usernameAvailable.value = false;
+                        return;
+                    }
+                    try {
+                        const response = await axios.get(`http://localhost:3000/api/users/check/${formUser.username}`);
+                        if (response.data.exists) {
+                            errorsUser.username = "Este nombre de usuario ya existe";
+                            usernameAvailable.value = false;
+                        } else {
+                            errorsUser.username = null;
+                            usernameAvailable.value = true;
+                        }
+                    } catch (err) {
+                        console.error("Error al validar usuario:", err);
+                    }
+                };
 
-            const submitAlta = () => {
-                validateAlta();
-                if (!hasErrorsAlta.value) {
-                    successAlta.value = true;
-                    setTimeout(() => successAlta.value = false, 3000);
-                }
-            };
+                const submitRegistro = async () => {
+                    try {
+                        const response = await axios.post('http://localhost:3000/api/users/register', formUser);
+                        if (response.status === 201) {
+                            successUser.value = true;
+                            formUser.username = '';
+                            formUser.email = '';
+                            formUser.password = '';
+                            usernameAvailable.value = false;
+                            setTimeout(() => successUser.value = false, 3000);
+                        }
+                    } catch (err) {
+                        alert("Error al registrar usuario: " + (err.response?.data?.msg || err.message));
+                    }
+                };
 
-            // Form Modificar
-            const formModificar = reactive({ nombre: '', precio: null });
-            const errorsModificar = reactive({ nombre: null, precio: null });
-            const successModificar = ref(false);
+                // Form Alta
+                const formAlta = reactive({ nombre: '', precio: null });
+                const errorsAlta = reactive({ nombre: null, precio: null });
+                const successAlta = ref(false);
 
-            const validateModificar = () => {
-                errorsModificar.nombre = !formModificar.nombre ? 'Debe seleccionar una habitación' : null;
-                errorsModificar.precio = !formModificar.precio || formModificar.precio <= 0 ? 'El precio debe ser mayor a 0' : null;
-            };
+                const validateAlta = () => {
+                    errorsAlta.nombre = !formAlta.nombre ? 'El nombre es obligatorio' : null;
+                    errorsAlta.precio = !formAlta.precio || formAlta.precio <= 0 ? 'El precio debe ser mayor a 0' : null;
+                };
 
-            const hasErrorsModificar = computed(() => !formModificar.nombre || !formModificar.precio || formModificar.precio <= 0);
+                const hasErrorsAlta = computed(() => !formAlta.nombre || !formAlta.precio || formAlta.precio <= 0);
 
-            const submitModificar = () => {
-                validateModificar();
-                if (!hasErrorsModificar.value) {
-                    successModificar.value = true;
-                    setTimeout(() => successModificar.value = false, 3000);
-                }
-            };
+                const submitAlta = () => {
+                    validateAlta();
+                    if (!hasErrorsAlta.value) {
+                        successAlta.value = true;
+                        setTimeout(() => successAlta.value = false, 3000);
+                    }
+                };
 
-            // Form Eliminar
-            const formEliminar = reactive({ nombre: '' });
-            const errorsEliminar = reactive({ nombre: null });
-            const successEliminar = ref(false);
+                // Form Modificar
+                const formModificar = reactive({ nombre: '', precio: null });
+                const errorsModificar = reactive({ nombre: null, precio: null });
+                const successModificar = ref(false);
 
-            const validateEliminar = () => {
-                errorsEliminar.nombre = !formEliminar.nombre ? 'Debe seleccionar una habitación' : null;
-            };
+                const validateModificar = () => {
+                    errorsModificar.nombre = !formModificar.nombre ? 'Debe seleccionar una habitación' : null;
+                    errorsModificar.precio = !formModificar.precio || formModificar.precio <= 0 ? 'El precio debe ser mayor a 0' : null;
+                };
 
-            const hasErrorsEliminar = computed(() => !formEliminar.nombre);
+                const hasErrorsModificar = computed(() => !formModificar.nombre || !formModificar.precio || formModificar.precio <= 0);
 
-            const submitEliminar = () => {
-                validateEliminar();
-                if (!hasErrorsEliminar.value) {
-                    successEliminar.value = true;
-                    setTimeout(() => successEliminar.value = false, 3000);
-                }
-            };
+                const submitModificar = () => {
+                    validateModificar();
+                    if (!hasErrorsModificar.value) {
+                        successModificar.value = true;
+                        setTimeout(() => successModificar.value = false, 3000);
+                    }
+                };
 
-            const goTo = (url) => window.location.href = url;
+                // Form Eliminar
+                const formEliminar = reactive({ nombre: '' });
+                const errorsEliminar = reactive({ nombre: null });
+                const successEliminar = ref(false);
 
-            return {
-                rooms, socialLinks,
-                formAlta, errorsAlta, successAlta, validateAlta, hasErrorsAlta, submitAlta,
-                formModificar, errorsModificar, successModificar, validateModificar, hasErrorsModificar, submitModificar,
-                formEliminar, errorsEliminar, successEliminar, validateEliminar, hasErrorsEliminar, submitEliminar,
-                goTo
-            };
-        }
-    }).mount('#app');
-</script>
+                const validateEliminar = () => {
+                    errorsEliminar.nombre = !formEliminar.nombre ? 'Debe seleccionar una habitación' : null;
+                };
+
+                const hasErrorsEliminar = computed(() => !formEliminar.nombre);
+
+                const submitEliminar = () => {
+                    validateEliminar();
+                    if (!hasErrorsEliminar.value) {
+                        successEliminar.value = true;
+                        setTimeout(() => successEliminar.value = false, 3000);
+                    }
+                };
+
+                const goTo = (url) => window.location.href = url;
+
+                return {
+                    rooms, socialLinks,
+                    formUser, errorsUser, usernameAvailable, successUser, checkUsername, submitRegistro,
+                    formAlta, errorsAlta, successAlta, validateAlta, hasErrorsAlta, submitAlta,
+                    formModificar, errorsModificar, successModificar, validateModificar, hasErrorsModificar, submitModificar,
+                    formEliminar, errorsEliminar, successEliminar, validateEliminar, hasErrorsEliminar, submitEliminar,
+                    goTo
+                };
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>
