@@ -8,6 +8,10 @@ router.get('/', userController.getUsers);
 router.put('/:id', userController.updateUser);
 router.delete('/:id', userController.deleteUser);
 
+// Autenticación
+router.post('/login', userController.loginUser);
+router.post('/logout', userController.logoutUser);
+
 // AJAX: Verificar disponibilidad de nombre de usuario
 router.get('/check/:username', userController.checkUsername);
 

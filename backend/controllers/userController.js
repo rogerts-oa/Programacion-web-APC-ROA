@@ -84,3 +84,62 @@ exports.checkUsername = async (req, res) => {
     res.status(500).send('Error al verificar disponibilidad');
   }
 };
+
+// Iniciar Sesión (Login)
+exports.loginUser = async (req, res) => {
+  const { username, password } = req.body;
+  console.log('--- INTENTO DE LOGIN ---');
+  console.log('1. Datos recibidos:', { username, password: '***' }); // No imprimimos password real por seguridad
+
+  try {
+    // 1. Buscar usuario
+    const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+
+    if (result.rows.length === 0) {
+      console.log('2. Usuario encontrado en BD: NULL (No existe)');
+      return res.status(401).json({ msg: 'Credenciales inválidas' });
+    }
+
+    const user = result.rows[0];
+    console.log('2. Usuario encontrado en BD:', { id: user.id, username: user.username, role: user.role });
+
+    // 2. Validar contraseña
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('3. Resultado bcrypt.compare:', isMatch);
+
+    if (!isMatch) {
+      console.log('X. Error: Las contraseñas no coinciden');
+      return res.status(401).json({ msg: 'Credenciales inválidas' });
+    }
+
+    // 3. Guardar sesión
+    req.session.userId = user.id;
+    req.session.role = user.role;
+    req.session.username = user.username;
+    console.log('4. Sesión guardada con éxito');
+
+    // 4. Responder con éxito
+    res.json({
+      msg: 'Login exitoso',
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    console.error('X. ERROR CATCH:', err.message);
+    res.status(500).send('Error en el inicio de sesión');
+  }
+};
+
+// Cerrar Sesión (Logout)
+exports.logoutUser = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ msg: 'No se pudo cerrar la sesión' });
+    }
+    res.clearCookie('connect.sid');
+    res.json({ msg: 'Sesión cerrada correctamente' });
+  });
+};

@@ -175,7 +175,7 @@
                         return;
                     }
                     try {
-                        const response = await axios.get(`http://localhost:3000/api/users/check/${formUser.username}`);
+                        const response = await axios.get(`/api/users/check/${formUser.username}`);
                         if (response.data.exists) {
                             errorsUser.username = "Este nombre de usuario ya existe";
                             usernameAvailable.value = false;
@@ -190,7 +190,7 @@
 
                 const submitRegistro = async () => {
                     try {
-                        const response = await axios.post('http://localhost:3000/api/users/register', formUser);
+                        const response = await axios.post('/api/users/register', formUser);
                         if (response.status === 201) {
                             successUser.value = true;
                             formUser.username = '';
