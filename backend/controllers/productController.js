@@ -1,4 +1,35 @@
 const db = require('../config/db');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configuración de Multer para almacenamiento local
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './uploads/';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        // Nombre de archivo único usando timestamp
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|webp/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        if (mimetype && extname) return cb(null, true);
+        cb(new Error("Error: Solo se permiten imágenes (jpeg, jpg, png, webp)"));
+    }
+});
+
+exports.uploadImage = upload.single('imagen');
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -24,13 +55,15 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-// Crear producto
+// Crear producto con imagen
 exports.createProduct = async (req, res) => {
   const { nombre, categoria, precio } = req.body;
+  const imagen_url = req.file ? `/uploads/${req.file.filename}` : null;
+  
   try {
     const result = await db.query(
-      'INSERT INTO productos_servicios (nombre, categoria, precio) VALUES ($1, $2, $3) RETURNING *',
-      [nombre, categoria || 'Habitación', precio]
+      'INSERT INTO productos_servicios (nombre, categoria, precio, imagen_url) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nombre, categoria || 'Habitación', precio, imagen_url]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -39,15 +72,24 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Actualizar producto
+// Actualizar producto con opción de nueva imagen
 exports.updateProduct = async (req, res) => {
   const { id } = req.params;
   const { precio } = req.body;
+  const imagen_url = req.file ? `/uploads/${req.file.filename}` : undefined;
+  
   try {
-    const result = await db.query(
-      'UPDATE productos_servicios SET precio = $1 WHERE id = $2 RETURNING *',
-      [precio, id]
-    );
+    let query = 'UPDATE productos_servicios SET precio = $1';
+    let params = [precio, id];
+    
+    if (imagen_url) {
+        query += ', imagen_url = $3 WHERE id = $2';
+        params.push(imagen_url);
+    } else {
+        query += ' WHERE id = $2';
+    }
+    
+    const result = await db.query(query + ' RETURNING *', params);
     if (result.rows.length === 0) {
       return res.status(404).json({ msg: 'Producto no encontrado' });
     }

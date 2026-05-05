@@ -25,7 +25,6 @@
             color: #d32f2f;
             font-size: 0.85rem;
             display: block;
-            margin-top: -10px;
             margin-bottom: 15px;
             font-weight: 500;
         }
@@ -61,6 +60,15 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        input[type="file"] {
+            margin-bottom: 15px;
+            border: 1px dashed var(--primary-color);
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            background: #fdfdfd;
+        }
     </style>
 </head>
 
@@ -95,8 +103,7 @@
             <div v-if="!user || user.role !== 'Admin'" style="text-align:center; padding: 50px;">
                 <h2>Acceso Restringido</h2>
                 <p>Solo los administradores pueden acceder a esta sección.</p>
-                <a href="index.html" class="btn-style" style="display:inline-block; margin-top:20px;">Volver al
-                    Inicio</a>
+                <a href="index.html" class="btn-style" style="display:inline-block; margin-top:20px;">Volver al Inicio</a>
             </div>
 
             <template v-else>
@@ -115,20 +122,22 @@
                                 :class="{ 'input-error': formAlta.precio !== null && formAlta.precio <= 0 }" required
                                 placeholder="Precio por noche">
 
-                            <!-- Validación en tiempo real con v-if -->
                             <span v-if="formAlta.precio !== null && formAlta.precio <= 0" class="error-message">
                                 El precio debe ser mayor a 0
                             </span>
 
-                            <button class="btn-style" style="width:100%" type="submit" :disabled="formAlta.precio <= 0">
-                                Agregar Habitación
+                            <label>Imagen de la Habitación:</label>
+                            <input type="file" @change="handleFileAlta" accept="image/*">
+
+                            <button class="btn-style" style="width:100%" type="submit" :disabled="formAlta.precio <= 0 || authLoading">
+                                {{ authLoading ? 'Subiendo...' : 'Agregar Habitación' }}
                             </button>
                         </form>
                     </section>
 
                     <!-- Formulario Modificar -->
                     <section class="form-section">
-                        <h2>Modificar Precio</h2>
+                        <h2>Modificar Precio / Imagen</h2>
                         <form @submit.prevent="submitModificar">
                             <label>Seleccionar Habitación:</label>
                             <select v-model="selectedRoomId" required @change="updateModificarForm">
@@ -141,16 +150,19 @@
                             <label>Nuevo Precio:</label>
                             <input type="number" v-model.number="formModificar.precio" required>
 
+                            <label>Cambiar Imagen:</label>
+                            <input type="file" @change="handleFileMod" accept="image/*">
+
                             <button class="btn-style" style="width:100%" type="submit"
-                                :disabled="!selectedRoomId || formModificar.precio <= 0">
-                                Actualizar Precio
+                                :disabled="!selectedRoomId || formModificar.precio <= 0 || authLoading">
+                                {{ authLoading ? 'Actualizando...' : 'Actualizar Habitación' }}
                             </button>
                         </form>
                     </section>
                 </div>
 
                 <!-- Sección de Eliminación -->
-                <section class="form-section" style="border-top: 4px solid #d32f2f;">
+                <section class="form-section" style="border-top: 4px solid #d32f2f; margin-top: 20px;">
                     <h2 style="color: #d32f2f;">Eliminar Habitación</h2>
                     <p>Cuidado: Esta acción no se puede deshacer.</p>
                     <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
@@ -197,9 +209,10 @@
                 const rooms = ref([]);
                 const selectedRoomId = ref('');
                 const roomToDeleteId = ref('');
+                const authLoading = ref(false);
 
-                const formAlta = reactive({ nombre: '', precio: null });
-                const formModificar = reactive({ precio: null });
+                const formAlta = reactive({ nombre: '', precio: null, file: null });
+                const formModificar = reactive({ precio: null, file: null });
 
                 const fetchRooms = async () => {
                     try {
@@ -210,20 +223,30 @@
                     }
                 };
 
+                const handleFileAlta = (e) => { formAlta.file = e.target.files[0]; };
+                const handleFileMod = (e) => { formModificar.file = e.target.files[0]; };
+
                 const submitAlta = async () => {
+                    authLoading.value = true;
                     try {
-                        await axios.post('/api/products', {
-                            nombre: formAlta.nombre,
-                            precio: formAlta.precio,
-                            categoria: 'Habitación'
+                        const formData = new FormData();
+                        formData.append('nombre', formAlta.nombre);
+                        formData.append('precio', formAlta.precio);
+                        formData.append('categoria', 'Habitación');
+                        if (formAlta.file) formData.append('imagen', formAlta.file);
+
+                        await axios.post('/api/products', formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
                         });
+
                         alert('¡Habitación agregada con éxito!');
                         formAlta.nombre = '';
                         formAlta.precio = null;
+                        formAlta.file = null;
                         fetchRooms();
                     } catch (err) {
                         alert('Error al agregar');
-                    }
+                    } finally { authLoading.value = false; }
                 };
 
                 const updateModificarForm = () => {
@@ -232,15 +255,22 @@
                 };
 
                 const submitModificar = async () => {
+                    authLoading.value = true;
                     try {
-                        await axios.put(`/api/products/${selectedRoomId.value}`, {
-                            precio: formModificar.precio
+                        const formData = new FormData();
+                        formData.append('precio', formModificar.precio);
+                        if (formModificar.file) formData.append('imagen', formModificar.file);
+
+                        await axios.put(`/api/products/${selectedRoomId.value}`, formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
                         });
-                        alert('¡Precio actualizado!');
+
+                        alert('¡Habitación actualizada!');
+                        formModificar.file = null;
                         fetchRooms();
                     } catch (err) {
                         alert('Error al actualizar');
-                    }
+                    } finally { authLoading.value = false; }
                 };
 
                 const submitEliminar = async () => {
@@ -258,9 +288,10 @@
                 onMounted(fetchRooms);
 
                 return {
-                    ...auth, rooms, selectedRoomId, roomToDeleteId,
+                    ...auth, rooms, selectedRoomId, roomToDeleteId, authLoading,
                     formAlta, formModificar,
-                    submitAlta, submitModificar, submitEliminar, updateModificarForm
+                    submitAlta, submitModificar, submitEliminar, updateModificarForm,
+                    handleFileAlta, handleFileMod
                 };
             }
         }).mount('#app');

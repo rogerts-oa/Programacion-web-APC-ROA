@@ -50,8 +50,9 @@ app.use(session({
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 
-// Servir archivos estáticos (frontend)
+// Servir archivos estáticos (frontend y subidas)
 app.use(express.static(path.join(__dirname, '../')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Manejo de errores
 app.use((err, req, res, next) => {
