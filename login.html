@@ -1,176 +1,133 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso - Hotel Quinta Dalam</title>
+    
     <link rel="stylesheet" href="styles.css">
+
+    
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        .auth-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            text-align: center;
+        .auth-card {
+            max-width: 450px;
+            margin: 60px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-medium);
         }
-
         .auth-toggle {
             display: flex;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #eee;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
         }
-
         .auth-toggle button {
             flex: 1;
-            padding: 10px;
-            border: none;
+            padding: 15px;
             background: none;
-            cursor: pointer;
-            font-size: 1.1em;
-            color: #888;
-            transition: 0.3s;
-        }
-
-        .auth-toggle button.active {
-            color: #7d6b5d;
-            font-weight: bold;
-            border-bottom: 3px solid #7d6b5d;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-
-        .btn-auth {
-            width: 100%;
-            padding: 12px;
-            background: #7d6b5d;
-            color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
             cursor: pointer;
-            transition: background 0.3s;
+            font-size: 1.1rem;
+            color: #888;
+            font-weight: 500;
+            transition: all 0.3s;
         }
-
-        .btn-auth:hover {
-            background: #5d4d42;
+        .auth-toggle button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
         }
-
-        .btn-auth:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .feedback {
-            margin-top: 10px;
-            font-size: 0.9em;
-        }
-
-        .error {
-            color: #d32f2f;
-        }
-
-        .success {
-            color: #388e3c;
-        }
-
-        .input-error {
-            border-color: #d32f2f !important;
-        }
-
-        .input-success {
-            border-color: #388e3c !important;
-        }
+        .feedback { margin-top: 15px; font-weight: 500; }
     </style>
 </head>
-
 <body class="body-style">
-    <header class="header-style">
-        <h1>Hotel Quinta Dalam</h1>
-    </header>
-
-    <main class="main-style" id="app">
-        <div class="auth-container">
-            <div class="auth-toggle">
-                <button :class="{ active: isLogin }" @click="isLogin = true">Iniciar Sesión</button>
-                <button :class="{ active: !isLogin }" @click="isLogin = false">Crear Cuenta</button>
+    <div id="app" v-cloak>
+        <nav class="navbar">
+            <a href="index.html" class="nav-brand">QUINTA DALAM</a>
+            <div class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="catalogo.html">Habitaciones</a>
+                <a href="nosotros.html">Nosotros</a>
+                <a href="formulario.html" v-if="user && user.role === 'Admin'">Gestión</a>
+                <a v-if="!user" href="login.html" class="btn-nav">Iniciar Sesión</a>
+                <div v-else class="user-menu">
+                    {{ user.username }}
+                    <div class="user-dropdown">
+                        <a href="#" @click.prevent="handleLogout">Cerrar Sesión</a>
+                    </div>
+                </div>
             </div>
+        </nav>
 
-            <!-- Formulario de Login -->
-            <form v-if="isLogin" @submit.prevent="handleLogin">
-                <div class="form-group">
+        <main class="main-style">
+            <div class="auth-card">
+                <div class="auth-toggle">
+                    <button :class="{ active: isLogin }" @click="isLogin = true">Iniciar Sesión</button>
+                    <button :class="{ active: !isLogin }" @click="isLogin = false">Registrarse</button>
+                </div>
+
+                <!-- Login -->
+                <form v-if="isLogin" @submit.prevent="handleLogin">
                     <label>Usuario</label>
-                    <input type="text" v-model="loginData.username" required placeholder="Tu usuario">
-                </div>
-                <div class="form-group">
+                    <input type="text" v-model="loginData.username" required placeholder="Nombre de usuario">
+                    
                     <label>Contraseña</label>
-                    <input type="password" v-model="loginData.password" required placeholder="********">
-                </div>
-                <button type="submit" class="btn-auth" :disabled="loading">
-                    {{ loading ? 'Cargando...' : 'Entrar' }}
-                </button>
-                <p v-if="message" :class="['feedback', messageType]">{{ message }}</p>
-            </form>
+                    <input type="password" v-model="loginData.password" required placeholder="Contraseña">
+                    
+                    <button type="submit" class="btn-style" style="width:100%" :disabled="authLoading">
+                        {{ authLoading ? 'Cargando...' : 'Entrar' }}
+                    </button>
+                    <p v-if="message" :class="['feedback', messageType]">{{ message }}</p>
+                </form>
 
-            <!-- Formulario de Registro -->
-            <form v-else @submit.prevent="handleRegister">
-                <div class="form-group">
+                <!-- Registro -->
+                <form v-else @submit.prevent="handleRegister">
                     <label>Nombre de Usuario</label>
-                    <input type="text" v-model="registerData.username" @input="checkUsername"
-                        :class="{ 'input-error': usernameExists === true, 'input-success': usernameExists === false }"
-                        required placeholder="Mínimo 3 caracteres">
-                    <span v-if="usernameExists === true" class="feedback error">Este usuario ya existe</span>
-                    <span v-if="usernameExists === false" class="feedback success">Usuario disponible</span>
-                </div>
-                <div class="form-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" v-model="registerData.email" required placeholder="ejemplo@correo.com">
-                </div>
-                <div class="form-group">
+                    <input type="text" v-model="registerData.username" @input="checkUsername" placeholder="Mínimo 3 caracteres">
+                    <p v-if="usernameExists === true" class="feedback error">Ya ocupado</p>
+                    
+                    <label>Email</label>
+                    <input type="email" v-model="registerData.email" required placeholder="correo@ejemplo.com">
+                    
                     <label>Contraseña</label>
                     <input type="password" v-model="registerData.password" required placeholder="Mínimo 6 caracteres">
+                    
+                    <button type="submit" class="btn-style" style="width:100%" :disabled="authLoading || usernameExists !== false">
+                        {{ authLoading ? 'Registrando...' : 'Crear Cuenta' }}
+                    </button>
+                    <p v-if="message" :class="['feedback', messageType]">{{ message }}</p>
+                </form>
+            </div>
+        </main>
+
+        <footer class="footer-style">
+            <div class="footer-content">
+                <h3>Contacto</h3>
+                <div class="social-icons">
+                    <a href="#"><img src="imágenes_hotel/icons/facebook.svg" alt="Facebook"></a>
+                    <a href="#"><img src="imágenes_hotel/icons/instagram.svg" alt="Instagram"></a>
+                    <a href="#"><img src="imágenes_hotel/icons/tiktok.svg" alt="TikTok"></a>
                 </div>
-                <button type="submit" class="btn-auth"
-                    :disabled="loading || usernameExists !== false || registerData.password.length < 6">
-                    {{ loading ? 'Registrando...' : 'Registrarse' }}
-                </button>
-                <p v-if="message" :class="['feedback', messageType]">{{ message }}</p>
-            </form>
-        </div>
-    </main>
+                <p class="copyright">© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
+                <div class="w3c-badges">
+                    <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!">
+                    <img src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!">
+                </div>
+            </div>
+        </footer>
+    </div>
 
-    <footer class="footer-style">
-        <p>© 2024 Hotel Quinta Dalam. Tradición y Confort.</p>
-    </footer>
-
+    <script src="js/auth.js"></script>
     <script>
         const { createApp, ref, reactive } = Vue;
 
         createApp({
             setup() {
+                const auth = authShared.setup();
                 const isLogin = ref(true);
-                const loading = ref(false);
+                const authLoading = ref(false);
                 const message = ref('');
                 const messageType = ref('');
                 const usernameExists = ref(null);
@@ -178,71 +135,38 @@
                 const loginData = reactive({ username: '', password: '' });
                 const registerData = reactive({ username: '', email: '', password: '' });
 
-                // Configurar Axios para enviar cookies
-                axios.defaults.withCredentials = true;
-
                 const checkUsername = async () => {
-                    if (registerData.username.length < 3) {
-                        usernameExists.value = null;
-                        return;
-                    }
-                    try {
-                        const response = await axios.get(`/api/users/check/${registerData.username}`);
-                        usernameExists.value = response.data.exists;
-                    } catch (err) {
-                        console.error("Error al validar usuario");
-                    }
+                    if (registerData.username.length < 3) return;
+                    const res = await axios.get(`/api/users/check/${registerData.username}`);
+                    usernameExists.value = res.data.exists;
                 };
 
                 const handleLogin = async () => {
-                    console.log('Enviando datos...', loginData.username, loginData.password);
-                    loading.value = true;
-                    message.value = '';
+                    authLoading.value = true;
                     try {
-                        const response = await axios.post('/api/users/login', loginData);
-                        console.log('Respuesta recibida:', response.data);
-                        const user = response.data.user;
-
-                        alert(`¡Bienvenido ${user.username}! Has iniciado sesión como ${user.role}.`);
-                        window.location.href = 'catalogo.html';
+                        const res = await axios.post('/api/users/login', loginData);
+                        alert('¡Bienvenido!');
+                        window.location.href = 'index.html';
                     } catch (err) {
-                        console.error('Error en la petición:', err);
                         messageType.value = 'error';
-                        message.value = err.response?.data?.msg || 'Error al iniciar sesión';
-                    } finally {
-                        loading.value = false;
-                    }
+                        message.value = 'Credenciales inválidas';
+                    } finally { authLoading.value = false; }
                 };
 
                 const handleRegister = async () => {
-                    loading.value = true;
-                    message.value = '';
+                    authLoading.value = true;
                     try {
-                        await axios.post('/api/users/register', {
-                            ...registerData,
-                            role: 'Cliente' // Rol por defecto
-                        });
-                        messageType.value = 'success';
-                        message.value = '¡Registro exitoso! Ahora puedes iniciar sesión.';
-                        setTimeout(() => {
-                            isLogin.value = true;
-                            message.value = '';
-                        }, 2000);
+                        await axios.post('/api/users/register', { ...registerData, role: 'Cliente' });
+                        messageType.value = 'success'; message.value = '¡Registro exitoso!';
+                        setTimeout(() => isLogin.value = true, 2000);
                     } catch (err) {
-                        messageType.value = 'error';
-                        message.value = err.response?.data?.msg || 'Error al registrarse';
-                    } finally {
-                        loading.value = false;
-                    }
+                        messageType.value = 'error'; message.value = 'Error al registrar';
+                    } finally { authLoading.value = false; }
                 };
 
-                return {
-                    isLogin, loading, message, messageType, usernameExists,
-                    loginData, registerData, checkUsername, handleLogin, handleRegister
-                };
+                return { ...auth, isLogin, authLoading, message, messageType, usernameExists, loginData, registerData, checkUsername, handleLogin, handleRegister };
             }
         }).mount('#app');
     </script>
 </body>
-
 </html>

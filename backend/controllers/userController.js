@@ -143,3 +143,18 @@ exports.logoutUser = (req, res) => {
     res.json({ msg: 'Sesión cerrada correctamente' });
   });
 };
+// Obtener usuario actual
+exports.getMe = async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ msg: 'No autorizado' });
+  }
+  try {
+    const result = await db.query('SELECT id, username, email, role FROM users WHERE id = $1', [req.session.userId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: 'Usuario no encontrado' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).send('Error en el servidor');
+  }
+};

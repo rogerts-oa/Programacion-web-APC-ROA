@@ -5,103 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo - Hotel Quinta Dalam</title>
     <meta name="description" content="Explora nuestro catálogo de habitaciones temáticas inspiradas en los Pueblos Mágicos de México.">
+    
     <link rel="stylesheet" href="styles.css">
+
+    
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        .rooms-list {
+        .rooms-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            padding: 0;
-            list-style: none;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
         }
-        .room-item {
-            background-color: #f8f1e5;
-            padding: 10px;
-            border-radius: 8px;
+        .room-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
             text-align: center;
-            border: 1px solid #d7ccc8;
-            transition: transform 0.2s, background-color 0.2s;
+            border: 1px solid #eee;
+            transition: all 0.3s;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .room-item:hover {
-            transform: translateY(-3px);
-            background-color: #efebe9;
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            border-color: var(--secondary-color);
         }
+        .room-card h3 { margin: 10px 0 5px; color: var(--primary-color); }
+        .room-card .price { font-weight: bold; color: var(--secondary-color); font-size: 1.2rem; }
     </style>
 </head>
-<body class="body-style" id="app">
-    <header class="header-style">
-        <h1>{{ headerTitle }}</h1>
-    </header>
-    <nav>
-        <div class="nav-wrapper">
-             <button class="btn-style" @click="goTo('index.html')">
-                  Inicio
-             </button>
-        </div>
-    </nav>
-    <main class="main-style">
-         <p v-for="p in introParagraphs" :key="p">{{ p }}</p>
-         
-         <div v-if="loading">Cargando catálogo...</div>
-         <div v-else-if="error">{{ error }}</div>
-         <ul v-else class="rooms-list">
-            <li v-for="product in products" 
-                :key="product.id" 
-                class="room-item" 
-                @click="selectItem(product)">
-                <strong>{{ product.nombre }}</strong><br>
-                <small>{{ product.categoria }}</small><br>
-                ${{ product.precio }}
-            </li>
-         </ul>
+<body class="body-style">
+    <div id="app" v-cloak>
+        <nav class="navbar">
+            <a href="index.html" class="nav-brand">QUINTA DALAM</a>
+            <div class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="catalogo.html">Habitaciones</a>
+                <a href="nosotros.html">Nosotros</a>
+                <a href="formulario.html" v-if="user && user.role === 'Admin'">Gestión</a>
+                <template v-if="!user">
+                    <a href="login.html" class="btn-nav">Iniciar Sesión</a>
+                </template>
+                <template v-else>
+                    <div class="user-menu">
+                        <i class="fas fa-user-circle"></i> {{ user.username }}
+                        <div class="user-dropdown">
+                            <a href="#" @click.prevent="handleLogout">Cerrar Sesión</a>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </nav>
 
-         <img class="img-style" src="imágenes_hotel/Cuarto.jpg" alt="Habitación Paracho del Hotel Quinta Dalam">
-    </main>
-    <footer class="footer-style">
-            <h2>{{ footerTitle }}</h2>
-            <ul>
-                <li v-for="social in socialLinks" :key="social.name">
-                    <a target="_blank" :href="social.url">{{ social.name }}</a>
-                </li>
-            </ul>
-            <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
-            <p>
-                <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
-                    <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
-                </a>
-            </p>
-            <p>
-                <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
-                    <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
-                </a>
-            </p>  
-    </footer>
+        <header class="header-style">
+            <h1>Habitaciones y Servicios</h1>
+        </header>
 
-    <!-- Axios CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <main class="main-style">
+            <p v-for="p in introParagraphs" :key="p">{{ p }}</p>
+            
+            <div v-if="loadingProducts" style="text-align:center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p>Cargando catálogo...</p>
+            </div>
+            <div v-else-if="error" class="error">{{ error }}</div>
+            
+            <div v-else class="rooms-grid">
+                <div v-for="product in products" 
+                    :key="product.id" 
+                    class="room-card" 
+                    @click="selectItem(product)">
+                    <h3>{{ product.nombre }}</h3>
+                    <p>{{ product.categoria }}</p>
+                    <p class="price">${{ product.precio }}</p>
+                </div>
+            </div>
 
+            <img class="img-style" src="imágenes_hotel/Cuarto.jpg" alt="Habitación Paracho del Hotel Quinta Dalam">
+        </main>
+
+        <footer class="footer-style">
+            <div class="footer-content">
+                <h3>Contacto</h3>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/profile.php?id=61584681841684" target="_blank"><img src="imágenes_hotel/icons/facebook.svg" alt="Facebook"></a>
+                    <a href="https://www.instagram.com/quintadalam" target="_blank"><img src="imágenes_hotel/icons/instagram.svg" alt="Instagram"></a>
+                    <a href="https://www.tiktok.com/@quintadalam" target="_blank"><img src="imágenes_hotel/icons/tiktok.svg" alt="TikTok"></a>
+                </div>
+                <p class="copyright">© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
+                <div class="w3c-badges">
+                    <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
+                        <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!">
+                    </a>
+                    <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
+                        <img src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!">
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/auth.js"></script>
     <script>
         const { createApp, ref, onMounted } = Vue;
 
         createApp({
             setup() {
-                const headerTitle = ref('Habitaciones y Servicios');
-                const footerTitle = ref('Contacto');
+                const auth = authShared.setup();
                 const products = ref([]);
-                const loading = ref(true);
+                const loadingProducts = ref(true);
                 const error = ref(null);
                 
                 const introParagraphs = ref([
-                    "En el Hotel Quinta Dalam, cada habitación es un homenaje a la riqueza cultural de los Pueblos Mágicos de México. Nuestro catálogo de habitaciones temáticas te invita a sumergirte en la esencia de cada destino, ofreciéndote una experiencia única que combina confort moderno con la magia ancestral de nuestras tradiciones.",
+                    "En el Hotel Quinta Dalam, cada habitación es un homenaje a la riqueza cultural de los Pueblos Mágicos de México.",
                     "Explore nuestra variedad de servicios diseñados para hacer su estancia inolvidable."
-                ]);
-
-                const socialLinks = ref([
-                    { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61584681841684' },
-                    { name: 'Instagram', url: 'https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' },
-                    { name: 'TikTok', url: 'https://www.tiktok.com/@quintadalam?lang=es' }
                 ]);
 
                 const fetchProducts = async () => {
@@ -109,25 +129,21 @@
                         const response = await axios.get('/api/products');
                         products.value = response.data;
                     } catch (err) {
-                        console.error("Error al cargar productos:", err);
                         error.value = "No se pudieron cargar los datos del catálogo.";
                     } finally {
-                        loading.value = false;
+                        loadingProducts.value = false;
                     }
                 };
 
-                onMounted(() => {
-                    fetchProducts();
-                });
-
-                const goTo = (url) => { window.location.href = url; };
+                onMounted(fetchProducts);
 
                 const selectItem = (product) => {
                     alert(`Has seleccionado: ${product.nombre} - Precio: $${product.precio}`);
                 };
 
                 return {
-                    headerTitle, footerTitle, introParagraphs, products, socialLinks, loading, error, goTo, selectItem
+                    ...auth,
+                    products, loadingProducts, error, introParagraphs, selectItem
                 };
             }
         }).mount('#app');

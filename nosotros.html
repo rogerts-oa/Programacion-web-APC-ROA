@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosotros - Hotel Quinta Dalam</title>
+    
+    <link rel="stylesheet" href="styles.css">
+
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="body-style">
+    <div id="app" v-cloak>
+        <nav class="navbar">
+            <a href="index.html" class="nav-brand">QUINTA DALAM</a>
+            <div class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="catalogo.html">Habitaciones</a>
+                <a href="nosotros.html">Nosotros</a>
+                <a href="formulario.html" v-if="user && user.role === 'Admin'">Gestión</a>
+                <a v-if="!user" href="login.html" class="btn-nav">Iniciar Sesión</a>
+                <div v-else class="user-menu">
+                    <i class="fas fa-user-circle"></i> {{ user.username }}
+                    <div class="user-dropdown">
+                        <a href="#" @click.prevent="handleLogout">Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <header class="header-style">
+            <h1>Sobre Nosotros</h1>
+            <p>Conoce la esencia y el futuro del Hotel Quinta Dalam</p>
+        </header>
+
+        <main class="main-style">
+            <!-- Sección Misión -->
+            <section style="margin-bottom: 4rem;">
+                <h2 style="color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); display: inline-block; padding-bottom: 5px;">
+                    Nuestra Misión
+                </h2>
+                <div style="margin-top: 1.5rem; font-size: 1.1rem; line-height: 1.8;">
+                    <p v-for="p in misionParagraphs" :key="p">{{ p }}</p>
+                </div>
+            </section>
+
+            <!-- Sección Visión -->
+            <section>
+                <h2 style="color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); display: inline-block; padding-bottom: 5px;">
+                    Nuestra Visión
+                </h2>
+                <div style="margin-top: 1.5rem; font-size: 1.1rem; line-height: 1.8;">
+                    <p>{{ visionText }}</p>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer-style">
+            <div class="footer-content">
+                <h3>Contacto</h3>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/profile.php?id=61584681841684" target="_blank" title="Facebook">
+                        <img src="imágenes_hotel/icons/facebook.svg" alt="Facebook">
+                    </a>
+                    <a href="https://www.instagram.com/quintadalam" target="_blank" title="Instagram">
+                        <img src="imágenes_hotel/icons/instagram.svg" alt="Instagram">
+                    </a>
+                    <a href="https://www.tiktok.com/@quintadalam" target="_blank" title="TikTok">
+                        <img src="imágenes_hotel/icons/tiktok.svg" alt="TikTok">
+                    </a>
+                </div>
+                
+                <p class="copyright">© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
+                
+                <div class="w3c-badges">
+                    <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
+                        <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!">
+                    </a>
+                    <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
+                        <img src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!">
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        const { createApp, ref } = Vue;
+        createApp({
+            setup() {
+                const auth = authShared.setup();
+                
+                const misionParagraphs = ref([
+                    "Brindar una experiencia de hospedaje auténtica y memorable que celebre la identidad cultural de los Pueblos Mágicos. Nos dedicamos a ofrecer un servicio de excelencia y calidez humana, preservando las tradiciones locales y garantizando un refugio de paz y confort para todos nuestros visitantes.",
+                    "En el Hotel Quinta Dalam, cada huésped es parte de nuestra familia, y cada estancia es una oportunidad para compartir la riqueza de nuestra cultura."
+                ]);
+
+                const visionText = ref("Consolidarnos para el año 2030 como el hotel temático referente en la región, siendo reconocidos por nuestra capacidad de capturar la esencia de los Pueblos Mágicos y por nuestro compromiso con la promoción de la riqueza cultural mexicana ante el mundo.");
+
+                return { ...auth, misionParagraphs, visionText };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
