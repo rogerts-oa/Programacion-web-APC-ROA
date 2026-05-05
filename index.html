@@ -30,9 +30,9 @@
                     <a href="login.html" class="btn-nav">Iniciar Sesión</a>
                 </template>
                 <template v-else>
-                    <div class="user-menu">
-                        <i class="fas fa-user-circle"></i> {{ user.username }}
-                        <div class="user-dropdown">
+                    <div class="user-menu" @click="toggleDropdown">
+                        {{ user.username }}
+                        <div class="user-dropdown" v-if="dropdownOpen">
                             <a href="#" @click.prevent="handleLogout">Cerrar Sesión</a>
                         </div>
                     </div>

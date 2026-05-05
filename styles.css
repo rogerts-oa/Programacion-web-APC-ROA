@@ -103,23 +103,46 @@ h1, h2, h3 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+.user-menu:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.user-menu::after {
+    content: '\f107'; /* Chevron down from FontAwesome (optional, but good for UX) */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 0.8rem;
+    opacity: 0.7;
 }
 
 .user-dropdown {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 5px); /* Espacio controlado */
     right: 0;
     background: white;
     box-shadow: var(--shadow-medium);
     border-radius: 8px;
-    min-width: 150px;
-    margin-top: 0.5rem;
-    display: none;
+    min-width: 160px;
+    display: flex;
     flex-direction: column;
+    overflow: hidden;
+    z-index: 1100;
 }
 
-.user-menu:hover .user-dropdown {
-    display: flex;
+/* Puente visual para evitar el gap */
+.user-dropdown::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: 0;
+    left: 0;
+    height: 10px;
+    background: transparent;
 }
 
 .user-dropdown a {

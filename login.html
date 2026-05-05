@@ -52,9 +52,9 @@
                 <a href="nosotros.html">Nosotros</a>
                 <a href="formulario.html" v-if="user && user.role === 'Admin'">Gestión</a>
                 <a v-if="!user" href="login.html" class="btn-nav">Iniciar Sesión</a>
-                <div v-else class="user-menu">
+                <div v-else class="user-menu" @click="toggleDropdown">
                     {{ user.username }}
-                    <div class="user-dropdown">
+                    <div class="user-dropdown" v-if="dropdownOpen">
                         <a href="#" @click.prevent="handleLogout">Cerrar Sesión</a>
                     </div>
                 </div>
