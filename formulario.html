@@ -1,17 +1,69 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión - Hotel Quinta Dalam</title>
     <meta name="description" content="Gestión administrativa para el Hotel Quinta Dalam.">
-    
+
     <link rel="stylesheet" href="styles.css">
 
-    
+    <!-- Librerías de Vue 3 y Axios -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2rem;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .input-error {
+            border-color: #d32f2f !important;
+            background-color: #fff8f8;
+        }
+
+        .valid-message {
+            color: #388e3c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-delete {
+            background-color: #d32f2f;
+            margin-top: 10px;
+        }
+
+        .btn-delete:hover {
+            background-color: #b71c1c;
+        }
+
+        .management-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .management-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
 </head>
+
 <body class="body-style">
     <div id="app" v-cloak>
         <nav class="navbar">
@@ -41,54 +93,86 @@
 
         <main class="main-style">
             <div v-if="!user || user.role !== 'Admin'" style="text-align:center; padding: 50px;">
-                <i class="fas fa-lock fa-3x" style="color: #d32f2f; margin-bottom: 20px;"></i>
                 <h2>Acceso Restringido</h2>
                 <p>Solo los administradores pueden acceder a esta sección.</p>
-                <a href="index.html" class="btn-style" style="display:inline-block; margin-top:20px;">Volver al Inicio</a>
+                <a href="index.html" class="btn-style" style="display:inline-block; margin-top:20px;">Volver al
+                    Inicio</a>
             </div>
 
             <template v-else>
-                <p>Utilice los formularios para gestionar las habitaciones y servicios del hotel.</p>
+                <p style="margin-bottom: 30px;">Administre el catálogo de habitaciones y servicios del hotel.</p>
 
-                <!-- Formulario Alta -->
-                <section class="form-section">
-                    <h2 style="margin-bottom: 20px;">Alta de Habitación</h2>
-                    <form @submit.prevent="submitAlta">
-                        <label for="nombreAlta">Nombre:</label>
-                        <input type="text" id="nombreAlta" v-model="formAlta.nombre" @blur="validateAlta">
-                        <span v-if="errorsAlta.nombre" class="error-message">{{ errorsAlta.nombre }}</span>
-                        
-                        <label for="precioAlta">Precio:</label>
-                        <input type="number" id="precioAlta" v-model.number="formAlta.precio" @blur="validateAlta">
-                        <span v-if="errorsAlta.precio" class="error-message">{{ errorsAlta.precio }}</span>
+                <div class="management-grid">
+                    <!-- Formulario Alta -->
+                    <section class="form-section">
+                        <h2>Alta de Habitación</h2>
+                        <form @submit.prevent="submitAlta">
+                            <label>Nombre:</label>
+                            <input type="text" v-model="formAlta.nombre" required placeholder="Ej: Habitación Morelia">
 
-                        <button class="btn-style" type="submit" :disabled="hasErrorsAlta">Agregar Habitación</button>
-                        <p v-if="successAlta" class="valid-message">¡Agregada con éxito!</p>
-                    </form>
-                </section>
+                            <label>Precio:</label>
+                            <input type="number" v-model.number="formAlta.precio"
+                                :class="{ 'input-error': formAlta.precio !== null && formAlta.precio <= 0 }" required
+                                placeholder="Precio por noche">
 
-                <!-- Formulario Modificar -->
-                <section class="form-section">
-                    <h2 style="margin-bottom: 20px;">Modificar Habitación</h2>
-                    <form @submit.prevent="submitModificar">
-                        <label for="nombreModificar">Seleccionar:</label>
-                        <input list="habitaciones" id="nombreModificar" v-model="formModificar.nombre" @blur="validateModificar">
-                        <datalist id="habitaciones">
-                            <option v-for="room in rooms" :key="room" :value="room">
-                        </datalist>
-                        
-                        <label for="precioModificar">Nuevo precio:</label>
-                        <input type="number" id="precioModificar" v-model.number="formModificar.precio" @blur="validateModificar">
+                            <!-- Validación en tiempo real con v-if -->
+                            <span v-if="formAlta.precio !== null && formAlta.precio <= 0" class="error-message">
+                                El precio debe ser mayor a 0
+                            </span>
 
-                        <button class="btn-style" type="submit" :disabled="hasErrorsModificar">Modificar Habitación</button>
-                    </form>
+                            <button class="btn-style" style="width:100%" type="submit" :disabled="formAlta.precio <= 0">
+                                Agregar Habitación
+                            </button>
+                        </form>
+                    </section>
+
+                    <!-- Formulario Modificar -->
+                    <section class="form-section">
+                        <h2>Modificar Precio</h2>
+                        <form @submit.prevent="submitModificar">
+                            <label>Seleccionar Habitación:</label>
+                            <select v-model="selectedRoomId" required @change="updateModificarForm">
+                                <option value="" disabled>Seleccione una...</option>
+                                <option v-for="room in rooms" :key="room.id" :value="room.id">
+                                    {{ room.nombre }} (${{ room.precio }})
+                                </option>
+                            </select>
+
+                            <label>Nuevo Precio:</label>
+                            <input type="number" v-model.number="formModificar.precio" required>
+
+                            <button class="btn-style" style="width:100%" type="submit"
+                                :disabled="!selectedRoomId || formModificar.precio <= 0">
+                                Actualizar Precio
+                            </button>
+                        </form>
+                    </section>
+                </div>
+
+                <!-- Sección de Eliminación -->
+                <section class="form-section" style="border-top: 4px solid #d32f2f;">
+                    <h2 style="color: #d32f2f;">Eliminar Habitación</h2>
+                    <p>Cuidado: Esta acción no se puede deshacer.</p>
+                    <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <label>Seleccionar para borrar:</label>
+                            <select v-model="roomToDeleteId">
+                                <option value="">Seleccione una habitación...</option>
+                                <option v-for="room in rooms" :key="room.id" :value="room.id">
+                                    {{ room.nombre }}
+                                </option>
+                            </select>
+                        </div>
+                        <button class="btn-style btn-delete" @click="submitEliminar" :disabled="!roomToDeleteId">
+                            Eliminar Permanentemente
+                        </button>
+                    </div>
                 </section>
             </template>
         </main>
 
         <footer class="footer-style">
             <div class="footer-content">
-                <h3>Contacto</h3>
                 <div class="social-icons">
                     <a href="#"><img src="imágenes_hotel/icons/facebook.svg" alt="Facebook"></a>
                     <a href="#"><img src="imágenes_hotel/icons/instagram.svg" alt="Instagram"></a>
@@ -105,40 +189,82 @@
 
     <script src="js/auth.js"></script>
     <script>
-        const { createApp, ref, reactive, computed } = Vue;
+        const { createApp, ref, reactive, onMounted } = Vue;
 
         createApp({
             setup() {
                 const auth = authShared.setup();
-                const rooms = ref(['Tzintzuntzan', 'Paracho', 'Yunuén', 'Pátzcuaro', 'Janitzio']);
-                
+                const rooms = ref([]);
+                const selectedRoomId = ref('');
+                const roomToDeleteId = ref('');
+
                 const formAlta = reactive({ nombre: '', precio: null });
-                const errorsAlta = reactive({ nombre: null, precio: null });
-                const successAlta = ref(false);
+                const formModificar = reactive({ precio: null });
 
-                const validateAlta = () => {
-                    errorsAlta.nombre = !formAlta.nombre ? 'El nombre es obligatorio' : null;
-                    errorsAlta.precio = !formAlta.precio || formAlta.precio <= 0 ? 'El precio debe ser mayor a 0' : null;
+                const fetchRooms = async () => {
+                    try {
+                        const response = await axios.get('/api/products');
+                        rooms.value = response.data;
+                    } catch (err) {
+                        console.error("Error al cargar habitaciones");
+                    }
                 };
 
-                const hasErrorsAlta = computed(() => !formAlta.nombre || !formAlta.precio || formAlta.precio <= 0);
-
-                const submitAlta = () => {
-                    validateAlta();
-                    if (!hasErrorsAlta.value) { successAlta.value = true; setTimeout(() => successAlta.value = false, 3000); }
+                const submitAlta = async () => {
+                    try {
+                        await axios.post('/api/products', {
+                            nombre: formAlta.nombre,
+                            precio: formAlta.precio,
+                            categoria: 'Habitación'
+                        });
+                        alert('¡Habitación agregada con éxito!');
+                        formAlta.nombre = '';
+                        formAlta.precio = null;
+                        fetchRooms();
+                    } catch (err) {
+                        alert('Error al agregar');
+                    }
                 };
 
-                const formModificar = reactive({ nombre: '', precio: null });
-                const validateModificar = () => {};
-                const hasErrorsModificar = computed(() => !formModificar.nombre || !formModificar.precio);
-                const submitModificar = () => {};
+                const updateModificarForm = () => {
+                    const room = rooms.value.find(r => r.id === selectedRoomId.value);
+                    if (room) formModificar.precio = room.precio;
+                };
+
+                const submitModificar = async () => {
+                    try {
+                        await axios.put(`/api/products/${selectedRoomId.value}`, {
+                            precio: formModificar.precio
+                        });
+                        alert('¡Precio actualizado!');
+                        fetchRooms();
+                    } catch (err) {
+                        alert('Error al actualizar');
+                    }
+                };
+
+                const submitEliminar = async () => {
+                    if (!confirm('¿Está seguro de que desea eliminar esta habitación?')) return;
+                    try {
+                        await axios.delete(`/api/products/${roomToDeleteId.value}`);
+                        alert('Habitación eliminada');
+                        roomToDeleteId.value = '';
+                        fetchRooms();
+                    } catch (err) {
+                        alert('Error al eliminar');
+                    }
+                };
+
+                onMounted(fetchRooms);
 
                 return {
-                    ...auth, rooms, formAlta, errorsAlta, successAlta, validateAlta, hasErrorsAlta, submitAlta,
-                    formModificar, validateModificar, hasErrorsModificar, submitModificar
+                    ...auth, rooms, selectedRoomId, roomToDeleteId,
+                    formAlta, formModificar,
+                    submitAlta, submitModificar, submitEliminar, updateModificarForm
                 };
             }
         }).mount('#app');
     </script>
 </body>
+
 </html>
