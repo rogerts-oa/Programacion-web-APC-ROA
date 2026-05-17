@@ -1,85 +1,301 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión - Hotel Quinta Dalam</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rogerts-oa/Programacion-web-APC-ROA_CSS@980fd01717453b457a3e0d3419b712f46297a8a0/formulario.css">
+    <meta name="description" content="Gestión administrativa para el Hotel Quinta Dalam.">
+
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Librerías de Vue 3 y Axios -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2rem;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .input-error {
+            border-color: #d32f2f !important;
+            background-color: #fff8f8;
+        }
+
+        .valid-message {
+            color: #388e3c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-delete {
+            background-color: #d32f2f;
+            margin-top: 10px;
+        }
+
+        .btn-delete:hover {
+            background-color: #b71c1c;
+        }
+
+        .management-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .management-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        input[type="file"] {
+            margin-bottom: 15px;
+            border: 1px dashed var(--primary-color);
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            background: #fdfdfd;
+        }
+    </style>
+</head>
+
 <body class="body-style">
-<header class="header-style">
-    <h1>Gestión de Habitaciones</h1>
-</header>
-<main class="main-style">
-    <p>
-        Utilice los siguientes formularios para gestionar las habitaciones del Hotel Quinta Dalam.
-        Puede agregar nuevas habitaciones, modificar las existentes o eliminar aquellas que ya no
-        estén disponibles.
-    </p>
-    <section>
-        <h2>Alta de Habitación</h2>
-        <form>
-            <label for="nombreAlta">Nombre de la habitación:</label><br>
-            <input type="text" id="nombreAlta" name="nombreAlta" required><br><br>
-            <label for="precioAlta">Precio por noche:</label><br>
-            <input type="number" id="precioAlta" name="precioAlta" required><br><br>
-            <button class="btn-style" type="submit">Agregar Habitación</button>
-        </form>
-    </section>
-    <hr>
-    <section>
-        <h2>Modificar Habitación</h2>
-        <form>
-            <label for="nombreModificar">Seleccionar habitación:</label><br>
-            <input list="habitaciones" id="nombreModificar" name="nombreModificar" required>
-            <datalist id="habitaciones">
-                <option value="Tzintzuntzan">
-                <option value="Paracho">
-                <option value="Yunuen">
-                <option value="Pátzcuaro">
-                <option value="Janitzio">
-                <option value="Morelia">
-                <option value="Uruapan">
-            </datalist>
-            <br><br>
-            <label for="precioModificar">Nuevo precio:</label><br>
-            <input type="number" id="precioModificar" name="precioModificar" required><br><br>
-            <button class="btn-style" type="submit">Modificar Habitación</button>
-        </form>
-    </section>
-    <hr>
-    <section>
-        <h2>Eliminar Habitación</h2>
-        <form>
-            <label for="nombreEliminar">Seleccionar habitación:</label><br>
-            <input list="habitaciones" id="nombreEliminar" name="nombreEliminar" required><br><br>
-            <button class="btn-style" type="submit">Eliminar Habitación</button>
-        </form>
-    </section>
-    <br><br>
-    <div>
-        <button class="btn-style" type="button" onclick="window.location.href='index.html'">
-            Regresar al Inicio
-        </button>
+    <div id="app" v-cloak>
+        <nav class="navbar">
+            <a href="index.html" class="nav-brand">QUINTA DALAM</a>
+            <div class="nav-links">
+                <a href="index.html">Inicio</a>
+                <a href="catalogo.html">Habitaciones</a>
+                <a href="nosotros.html">Nosotros</a>
+                <a href="formulario.html" v-if="user && user.role === 'Admin'">Gestión</a>
+                <template v-if="!user">
+                    <a href="login.html" class="btn-nav">Iniciar Sesión</a>
+                </template>
+                <template v-else>
+                    <div class="user-menu" @click="toggleDropdown">
+                        {{ user.username }}
+                        <div class="user-dropdown" v-if="dropdownOpen">
+                            <a href="#" @click.prevent="handleLogout">Cerrar Sesión</a>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </nav>
+
+        <header class="header-style">
+            <h1>Gestión de Habitaciones</h1>
+        </header>
+
+        <main class="main-style">
+            <div v-if="!user || user.role !== 'Admin'" style="text-align:center; padding: 50px;">
+                <h2>Acceso Restringido</h2>
+                <p>Solo los administradores pueden acceder a esta sección.</p>
+                <a href="index.html" class="btn-style" style="display:inline-block; margin-top:20px;">Volver al Inicio</a>
+            </div>
+
+            <template v-else>
+                <p style="margin-bottom: 30px;">Administre el catálogo de habitaciones y servicios del hotel.</p>
+
+                <div class="management-grid">
+                    <!-- Formulario Alta -->
+                    <section class="form-section">
+                        <h2>Alta de Habitación</h2>
+                        <form @submit.prevent="submitAlta">
+                            <label>Nombre:</label>
+                            <input type="text" v-model="formAlta.nombre" required placeholder="Ej: Habitación Morelia">
+
+                            <label>Precio:</label>
+                            <input type="number" v-model.number="formAlta.precio"
+                                :class="{ 'input-error': formAlta.precio !== null && formAlta.precio <= 0 }" required
+                                placeholder="Precio por noche">
+
+                            <span v-if="formAlta.precio !== null && formAlta.precio <= 0" class="error-message">
+                                El precio debe ser mayor a 0
+                            </span>
+
+                            <label>Imagen de la Habitación:</label>
+                            <input type="file" @change="handleFileAlta" accept="image/*">
+
+                            <button class="btn-style" style="width:100%" type="submit" :disabled="formAlta.precio <= 0 || authLoading">
+                                {{ authLoading ? 'Subiendo...' : 'Agregar Habitación' }}
+                            </button>
+                        </form>
+                    </section>
+
+                    <!-- Formulario Modificar -->
+                    <section class="form-section">
+                        <h2>Modificar Precio / Imagen</h2>
+                        <form @submit.prevent="submitModificar">
+                            <label>Seleccionar Habitación:</label>
+                            <select v-model="selectedRoomId" required @change="updateModificarForm">
+                                <option value="" disabled>Seleccione una...</option>
+                                <option v-for="room in rooms" :key="room.id" :value="room.id">
+                                    {{ room.nombre }} (${{ room.precio }})
+                                </option>
+                            </select>
+
+                            <label>Nuevo Precio:</label>
+                            <input type="number" v-model.number="formModificar.precio" required>
+
+                            <label>Cambiar Imagen:</label>
+                            <input type="file" @change="handleFileMod" accept="image/*">
+
+                            <button class="btn-style" style="width:100%" type="submit"
+                                :disabled="!selectedRoomId || formModificar.precio <= 0 || authLoading">
+                                {{ authLoading ? 'Actualizando...' : 'Actualizar Habitación' }}
+                            </button>
+                        </form>
+                    </section>
+                </div>
+
+                <!-- Sección de Eliminación -->
+                <section class="form-section" style="border-top: 4px solid #d32f2f; margin-top: 20px;">
+                    <h2 style="color: #d32f2f;">Eliminar Habitación</h2>
+                    <p>Cuidado: Esta acción no se puede deshacer.</p>
+                    <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <label>Seleccionar para borrar:</label>
+                            <select v-model="roomToDeleteId">
+                                <option value="">Seleccione una habitación...</option>
+                                <option v-for="room in rooms" :key="room.id" :value="room.id">
+                                    {{ room.nombre }}
+                                </option>
+                            </select>
+                        </div>
+                        <button class="btn-style btn-delete" @click="submitEliminar" :disabled="!roomToDeleteId">
+                            Eliminar Permanentemente
+                        </button>
+                    </div>
+                </section>
+            </template>
+        </main>
+
+        <footer class="footer-style">
+            <div class="footer-content">
+                <div class="social-icons">
+                    <a href="#"><img src="imágenes_hotel/icons/facebook.svg" alt="Facebook"></a>
+                    <a href="#"><img src="imágenes_hotel/icons/instagram.svg" alt="Instagram"></a>
+                    <a href="#"><img src="imágenes_hotel/icons/tiktok.svg" alt="TikTok"></a>
+                </div>
+                <p class="copyright">© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
+                <div class="w3c-badges">
+                    <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!">
+                    <img src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!">
+                </div>
+            </div>
+        </footer>
     </div>
-</main>
-<footer class="footer-style">
-            <h2>Contacto</h2>
-            <ul>
-                <li><a target="_blank" href="https://www.facebook.com/profile.php?id=61584681841684">Facebook</a></li>
-                <li><a target="_blank" href="https://www.instagram.com/quintadalam?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</a></li>
-                <li><a target="_blank" href="https://www.tiktok.com/@quintadalam?lang=es">TikTok</a></li>
-            </ul>
-            <p>© 2024 Hotel Quinta Dalam. Todos los derechos reservados.</p>
-            <p>
-            <a href="https://validator.w3.org/nu/?doc=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F">
-                <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML!" height="31" width="88" >
-            </a>
-            </p>
-            <p>
-            <a href="https://jigsaw.w3.org/css-validator/validator?uri=https%3A%2F%2Frogerts-oa.github.io%2FProgramacion-web-APC-ROA%2F&profile=css3svg&usermedium=all&warning=1&vextwarning=&lang=es">
-                <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="¡CSS Válido!" >
-            </a>
-            </p>  
-</footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        const { createApp, ref, reactive, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const auth = authShared.setup();
+                const rooms = ref([]);
+                const selectedRoomId = ref('');
+                const roomToDeleteId = ref('');
+                const authLoading = ref(false);
+
+                const formAlta = reactive({ nombre: '', precio: null, file: null });
+                const formModificar = reactive({ precio: null, file: null });
+
+                const fetchRooms = async () => {
+                    try {
+                        const response = await axios.get('/api/products');
+                        rooms.value = response.data;
+                    } catch (err) {
+                        console.error("Error al cargar habitaciones");
+                    }
+                };
+
+                const handleFileAlta = (e) => { formAlta.file = e.target.files[0]; };
+                const handleFileMod = (e) => { formModificar.file = e.target.files[0]; };
+
+                const submitAlta = async () => {
+                    authLoading.value = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('nombre', formAlta.nombre);
+                        formData.append('precio', formAlta.precio);
+                        formData.append('categoria', 'Habitación');
+                        if (formAlta.file) formData.append('imagen', formAlta.file);
+
+                        await axios.post('/api/products', formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+
+                        alert('¡Habitación agregada con éxito!');
+                        formAlta.nombre = '';
+                        formAlta.precio = null;
+                        formAlta.file = null;
+                        fetchRooms();
+                    } catch (err) {
+                        alert('Error al agregar');
+                    } finally { authLoading.value = false; }
+                };
+
+                const updateModificarForm = () => {
+                    const room = rooms.value.find(r => r.id === selectedRoomId.value);
+                    if (room) formModificar.precio = room.precio;
+                };
+
+                const submitModificar = async () => {
+                    authLoading.value = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('precio', formModificar.precio);
+                        if (formModificar.file) formData.append('imagen', formModificar.file);
+
+                        await axios.put(`/api/products/${selectedRoomId.value}`, formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+
+                        alert('¡Habitación actualizada!');
+                        formModificar.file = null;
+                        fetchRooms();
+                    } catch (err) {
+                        alert('Error al actualizar');
+                    } finally { authLoading.value = false; }
+                };
+
+                const submitEliminar = async () => {
+                    if (!confirm('¿Está seguro de que desea eliminar esta habitación?')) return;
+                    try {
+                        await axios.delete(`/api/products/${roomToDeleteId.value}`);
+                        alert('Habitación eliminada');
+                        roomToDeleteId.value = '';
+                        fetchRooms();
+                    } catch (err) {
+                        alert('Error al eliminar');
+                    }
+                };
+
+                onMounted(fetchRooms);
+
+                return {
+                    ...auth, rooms, selectedRoomId, roomToDeleteId, authLoading,
+                    formAlta, formModificar,
+                    submitAlta, submitModificar, submitEliminar, updateModificarForm,
+                    handleFileAlta, handleFileMod
+                };
+            }
+        }).mount('#app');
+    </script>
 </body>
+
 </html>
