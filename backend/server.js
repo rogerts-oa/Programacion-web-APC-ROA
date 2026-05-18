@@ -54,6 +54,11 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use(express.static(path.join(__dirname, '../')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Ruta principal para servir el Frontend
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
 // Manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);

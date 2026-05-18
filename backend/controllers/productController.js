@@ -58,7 +58,8 @@ exports.getProductById = async (req, res) => {
 // Crear producto con imagen
 exports.createProduct = async (req, res) => {
   const { nombre, categoria, precio } = req.body;
-  const imagen_url = req.file ? `/uploads/${req.file.filename}` : null;
+  // Asignar imagen por defecto si no se sube ninguna
+  const imagen_url = req.file ? `/uploads/${req.file.filename}` : '/imágenes_hotel/default-room.jpg';
   
   try {
     const result = await db.query(

@@ -1,0 +1,24 @@
+{
+  "name": "hotel-quinta-dalam",
+  "version": "1.0.0",
+  "description": "Sitio web y sistema de gestión para Hotel Quinta Dalam",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "postinstall": "cd backend && npm install"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "connect-pg-simple": "^10.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.1.1",
+    "pg": "^8.20.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
