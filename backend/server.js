@@ -67,9 +67,12 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Configuración para HTTPS (Paso 4)
+// Importar el módulo HTTP nativo de Node al inicio o justo aquí
+const http = require('http');
+
 let server;
 const certPath = path.join(__dirname, 'certs');
+
 if (fs.existsSync(path.join(certPath, 'server.key')) && fs.existsSync(path.join(certPath, 'server.cert'))) {
   const options = {
     key: fs.readFileSync(path.join(certPath, 'server.key')),
@@ -78,7 +81,9 @@ if (fs.existsSync(path.join(certPath, 'server.key')) && fs.existsSync(path.join(
   server = https.createServer(options, app);
   console.log('Servidor configurado para HTTPS');
 } else {
-  server = app;
+  // Solución para AWS: Usar el servidor HTTP nativo envolviendo a Express
+  server = http.createServer(app);
+  console.log('Servidor configurado para HTTP estándar');
 }
 
 server.listen(PORT, () => {
