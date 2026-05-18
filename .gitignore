@@ -6,3 +6,6 @@ backend/.env
 # Ignorar las imágenes subidas localmente, excepto la imagen por defecto
 backend/uploads/*
 !backend/uploads/default-room.jpg
+
+.DS_Store
+*.zip
