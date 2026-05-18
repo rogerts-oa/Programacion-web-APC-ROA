@@ -67,24 +67,13 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Importar el módulo HTTP nativo de Node al inicio o justo aquí
+// Importar el módulo HTTP nativo de Node
 const http = require('http');
 
-let server;
-const certPath = path.join(__dirname, 'certs');
-
-if (fs.existsSync(path.join(certPath, 'server.key')) && fs.existsSync(path.join(certPath, 'server.cert'))) {
-  const options = {
-    key: fs.readFileSync(path.join(certPath, 'server.key')),
-    cert: fs.readFileSync(path.join(certPath, 'server.cert'))
-  };
-  server = https.createServer(options, app);
-  console.log('Servidor configurado para HTTPS');
-} else {
-  // Solución para AWS: Usar el servidor HTTP nativo envolviendo a Express
-  server = http.createServer(app);
-  console.log('Servidor configurado para HTTP estándar');
-}
+// Forzamos a que SIEMPRE sea HTTP estándar envolviendo a Express
+// Esto destruye cualquier intento de AWS de levantar HTTPS por error
+const server = http.createServer(app);
+console.log('Servidor configurado para HTTP estándar');
 
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
