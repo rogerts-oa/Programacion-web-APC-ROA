@@ -1,2 +1,8 @@
 backend/node_modules/
+node_modules/
 backend/.env
+.env
+
+# Ignorar las imágenes subidas localmente, excepto la imagen por defecto
+backend/uploads/*
+!backend/uploads/default-room.jpg
