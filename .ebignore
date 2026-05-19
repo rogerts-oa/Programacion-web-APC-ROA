@@ -1,0 +1,42 @@
+# ───────────────────────────────────────────────
+# .ebignore — Archivos excluidos del ZIP de AWS Elastic Beanstalk
+# Funciona igual que .gitignore pero solo aplica al deploy de EB.
+# Si este archivo existe, EB CLI lo usa en lugar de .gitignore.
+# ───────────────────────────────────────────────
+
+# Dependencias (AWS instala las suyas con `npm install` post-deploy)
+node_modules/
+backend/node_modules/
+
+# Variables de entorno y secretos (se configuran en EB → Environment Properties)
+.env
+.env.*
+backend/.env
+backend/.env.*
+
+# ZIPs de despliegues anteriores (no subir archivos de deploy dentro del deploy)
+*.zip
+*.tar.gz
+
+# Certificados SSL locales (no se usan en producción con EB + Nginx)
+backend/certs/
+
+# Uploads dinámicos (no se versionan; en producción deben ir a S3)
+backend/uploads/*
+!backend/uploads/default-room.jpg
+
+# Control de versiones (Git)
+.git/
+.gitignore
+
+# Artefactos del Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Herramientas de desarrollo (opcionales, reducen peso del bundle)
+README.md

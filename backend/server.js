@@ -4,34 +4,39 @@ const pgSession = require('connect-pg-simple')(session);
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
-const https = require('https');
-const fs = require('fs');
+const http = require('http'); // Movido al inicio de forma limpia
 const { pool } = require('./config/db');
 require('dotenv').config();
 
 const app = express();
 
-// Middlewares
+// Middlewares - Configuración de Seguridad CSP corregida para AWS
 app.use(helmet({
+  crossOriginOpenerPolicy: false, // Deshabilitado: solo funciona bajo HTTPS, genera warning inútil en HTTP
   contentSecurityPolicy: {
+    useDefaults: false,
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://unpkg.com", "https://cdn.jsdelivr.net"],
-      imgSrc: ["'self'", "data:", "https://www.w3.org", "http://www.w3.org", "http://jigsaw.w3.org"],
+      imgSrc: ["'self'", "data:", "https://www.w3.org", "http://www.w3.org", "http://jigsaw.w3.org", "*"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      connectSrc: ["'self'", "https://localhost:3000", "http://localhost:3000"],
+      connectSrc: ["'self'", "*"],
+      upgradeInsecureRequests: null,
     },
   },
 }));
+
+// CORS dinámico para aceptar el dominio de Elastic Beanstalk
 app.use(cors({
-  origin: 'http://localhost:3000', // Ajustar según sea necesario
+  origin: true,
   credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de Sesiones Persistentes en PostgreSQL
+// Configuración de Sesiones Persistentes en PostgreSQL (Supabase)
 app.use(session({
   store: new pgSession({
     pool: pool,
@@ -42,7 +47,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días
-    secure: process.env.NODE_ENV === 'production' // Solo true si usamos HTTPS
+    secure: false, // Forzar a false para permitir HTTP en Elastic Beanstalk
+    sameSite: 'lax' // Requerido por el navegador cuando secure es false
   }
 }));
 
@@ -50,16 +56,29 @@ app.use(session({
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 
-// Servir archivos estáticos (frontend y subidas)
-app.use(express.static(path.join(__dirname, '../')));
+// Raíz del proyecto: sube un nivel desde /backend/ hacia el directorio raíz
+// Usando __dirname en lugar de process.cwd() para rutas predecibles en cualquier entorno (AWS, local, Docker)
+const PROJECT_ROOT = path.join(__dirname, '..');
+
+// Servir archivos estáticos: HTML, CSS, JS, imágenes del frontend
+app.use(express.static(PROJECT_ROOT));
+// Servir uploads de productos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Ruta principal para servir el Frontend
+// Ruta raíz → index.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../index.html'));
+  res.sendFile(path.join(PROJECT_ROOT, 'index.html'));
 });
 
-// Manejo de errores
+// Catch-all para el resto de páginas HTML (catalogo, login, nosotros, formulario)
+app.get('/:page.html', (req, res) => {
+  const filePath = path.join(PROJECT_ROOT, req.params.page + '.html');
+  res.sendFile(filePath, (err) => {
+    if (err) res.status(404).send('Página no encontrada');
+  });
+});
+
+// Manejo de errores global
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Algo salió mal en el servidor!');
@@ -67,11 +86,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Importar el módulo HTTP nativo de Node
-const http = require('http');
-
-// Forzamos a que SIEMPRE sea HTTP estándar envolviendo a Express
-// Esto destruye cualquier intento de AWS de levantar HTTPS por error
+// Forzamos servidor HTTP estándar envolviendo a Express para el proxy de AWS
 const server = http.createServer(app);
 console.log('Servidor configurado para HTTP estándar');
 
