@@ -6,7 +6,7 @@ const fs = require('fs');
 // Configuración de Multer para almacenamiento local
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const dir = './uploads/';
+        const dir = path.join(__dirname, '..', 'uploads'); // Ruta absoluta: siempre apunta a /backend/uploads/ sin importar el CWD
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
@@ -59,7 +59,7 @@ exports.getProductById = async (req, res) => {
 exports.createProduct = async (req, res) => {
   const { nombre, categoria, precio } = req.body;
   // Asignar imagen por defecto si no se sube ninguna
-  const imagen_url = req.file ? `/uploads/${req.file.filename}` : '/imágenes_hotel/default-room.jpg';
+  const imagen_url = req.file ? `/uploads/${req.file.filename}` : '/imagenes_hotel/default-room.jpg';
   
   try {
     const result = await db.query(

@@ -1,16 +1,32 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// La URL de conexión se lee desde la variable de entorno DATABASE_URL.
+// En producción (Elastic Beanstalk): configurada en la consola de EB → Environment Properties.
+// En desarrollo local: definida en backend/.env (ese archivo NO va al repositorio ni al ZIP).
+if (!process.env.DATABASE_URL) {
+  console.error('❌ FATAL: La variable de entorno DATABASE_URL no está definida.');
+  process.exit(1);
+}
+
+// Log de diagnóstico: muestra el host sin exponer la contraseña
+try {
+  const dbUrl = new URL(process.env.DATABASE_URL);
+  console.log(`🔍 DB conectando a host: ${dbUrl.hostname}:${dbUrl.port} | DB: ${dbUrl.pathname}`);
+} catch (e) {
+  console.error('❌ DATABASE_URL tiene formato inválido (no es una URL válida):', process.env.DATABASE_URL.substring(0, 20) + '...');
+  process.exit(1);
+}
+
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false // Obligatorio para que Supabase acepte la conexión desde cualquier entorno
+  }
 });
 
 pool.on('connect', () => {
-  console.log('Base de datos conectada con éxito');
+  console.log('✅ Base de datos conectada con éxito via DATABASE_URL');
 });
 
 pool.on('error', (err) => {
@@ -20,5 +36,5 @@ pool.on('error', (err) => {
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
-  pool: pool, // Exportamos el pool directamente para connect-pg-simple
+  pool: pool, // Exportamos el pool para que connect-pg-simple maneje las sesiones
 };

@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // bcryptjs: puro JavaScript, sin compilación nativa → compatible con cualquier entorno AWS/EC2
 
 // Registrar Usuario
 exports.registerUser = async (req, res) => {

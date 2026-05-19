@@ -1,11 +1,46 @@
-backend/node_modules/
+# ───────────────────────────────────────────────
+# Dependencias
+# ───────────────────────────────────────────────
 node_modules/
-backend/.env
-.env
+backend/node_modules/
 
-# Ignorar las imágenes subidas localmente, excepto la imagen por defecto
+# ───────────────────────────────────────────────
+# Variables de entorno y secretos (¡NUNCA al repo!)
+# ───────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+
+# ───────────────────────────────────────────────
+# Archivos de despliegue / ZIPs de AWS
+# ───────────────────────────────────────────────
+*.zip
+*.tar.gz
+
+# ───────────────────────────────────────────────
+# Uploads (archivos subidos por usuarios)
+# Se ignoran los archivos dinámicos, se conserva la imagen por defecto
+# ───────────────────────────────────────────────
 backend/uploads/*
+!backend/uploads/.gitkeep
 !backend/uploads/default-room.jpg
 
+# ───────────────────────────────────────────────
+# Certificados SSL locales
+# ───────────────────────────────────────────────
+backend/certs/
+
+# ───────────────────────────────────────────────
+# Artefactos del Sistema Operativo
+# ───────────────────────────────────────────────
 .DS_Store
-*.zip
+Thumbs.db
+desktop.ini
+
+# ───────────────────────────────────────────────
+# Logs
+# ───────────────────────────────────────────────
+*.log
+npm-debug.log*
